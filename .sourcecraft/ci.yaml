@@ -1,24 +1,29 @@
 on:
   push:
     - workflows:
-        - build-go-workflow
+        - build-workflow
       filter:
         branches:
           - "main"
 
 
 workflows:
-  build-go-workflow:
+  build-workflow:
     settings:
       max_cube_duration: 20m
     checkout:
       enabled: true
+    env:
+      DOCKER_USER: ${{ secrets.docker.user }}
+      DOCKER_TOKEN: ${{ secrets.docker.pat }}
     tasks:
-      - name: build
+      - name: build-go
         uses: build-go-task
-        env:
-          DOCKER_USER: ${{ secrets.docker.user }}
-          DOCKER_TOKEN: ${{ secrets.docker.pat }}
+
+      - name: build-kotlin
+        uses: build-kotlin-task
+
+
 
   get-env:
     runs_on: [ "internal" ]
@@ -39,6 +44,16 @@ tasks:
           - cd golang-gin
           - docker build -t $DOCKER_USER/benchmark-golang-gin:latest .
           - docker push $DOCKER_USER/benchmark-golang-gin:latest
+
+  - name: build-kotlin-task
+    cubes:
+      - uses: docker-login
+
+      - name: build-kotlin-cube
+        script:
+          - cd kotlin-quarkus
+          - docker build -t $DOCKER_USER/benchmark-kotlin-quarkus:latest .
+          - docker push $DOCKER_USER/benchmark-kotlin-quarkus:latest
 
 
   - name: get-env
