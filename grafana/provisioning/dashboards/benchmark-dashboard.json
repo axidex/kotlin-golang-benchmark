@@ -1,0 +1,303 @@
+{
+  "title": "Kotlin Quarkus vs Golang Gin Benchmark",
+  "uid": "benchmark-comparison",
+  "timezone": "browser",
+  "schemaVersion": 16,
+  "version": 0,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "type": "graph",
+      "title": "Requests per Second",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{app=\"quarkus\"}[1m])",
+          "legendFormat": "Quarkus - {{uri}}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_requests_total{app=\"golang-gin\"}[1m])",
+          "legendFormat": "Golang - {{endpoint}}",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "req/s",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xaxis": {
+        "show": true
+      },
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "pointradius": 5,
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true,
+        "avg": true
+      }
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "type": "graph",
+      "title": "Average Response Time (ms)",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_sum{app=\"quarkus\"}[1m]) / rate(http_server_requests_seconds_count{app=\"quarkus\"}[1m]) * 1000",
+          "legendFormat": "Quarkus - {{uri}}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_request_duration_seconds_sum{app=\"golang-gin\"}[1m]) / rate(http_request_duration_seconds_count{app=\"golang-gin\"}[1m]) * 1000",
+          "legendFormat": "Golang - {{endpoint}}",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "ms",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xaxis": {
+        "show": true
+      },
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "pointradius": 5,
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true,
+        "avg": true
+      }
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "type": "graph",
+      "title": "HTTP Status Codes",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{app=\"quarkus\"}[1m])",
+          "legendFormat": "Quarkus - {{status}}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_requests_total{app=\"golang-gin\"}[1m])",
+          "legendFormat": "Golang - {{status}}",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "req/s",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xaxis": {
+        "show": true
+      },
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "stack": true,
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      }
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "type": "graph",
+      "title": "Memory Usage",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{app=\"quarkus\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "Quarkus Heap (MB)",
+          "refId": "A"
+        },
+        {
+          "expr": "go_memstats_alloc_bytes{app=\"golang-gin\"} / 1024 / 1024",
+          "legendFormat": "Golang Alloc (MB)",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "MB",
+          "show": true
+        },
+        {
+          "show": true
+        }
+      ],
+      "xaxis": {
+        "show": true
+      },
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true,
+        "max": true,
+        "avg": true
+      }
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "type": "stat",
+      "title": "Quarkus Total Requests",
+      "targets": [
+        {
+          "expr": "sum(http_server_requests_seconds_count{app=\"quarkus\"})",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "type": "stat",
+      "title": "Golang Total Requests",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{app=\"golang-gin\"})",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "type": "stat",
+      "title": "Active Goroutines (Golang)",
+      "targets": [
+        {
+          "expr": "go_goroutines{app=\"golang-gin\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 100,
+                "color": "yellow"
+              },
+              {
+                "value": 1000,
+                "color": "red"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}

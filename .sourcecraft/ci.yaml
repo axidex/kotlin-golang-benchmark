@@ -1,0 +1,53 @@
+on:
+  push:
+    - workflows:
+        - build-go-workflow
+      filter:
+        branches:
+          - "main"
+
+
+workflows:
+  build-go-workflow:
+    settings:
+      max_cube_duration: 20m
+    checkout:
+      enabled: true
+    tasks:
+      - name: build
+        uses: build-go-task
+        env:
+          DOCKER_USER: ${{ secrets.docker.user }}
+          DOCKER_TOKEN: ${{ secrets.docker.pat }}
+
+  get-env:
+    runs_on: [ "internal" ]
+    settings:
+      max_cube_duration: 10m
+    checkout:
+      enabled: true
+    tasks:
+      - get-env
+
+tasks:
+  - name: build-go-task
+    cubes:
+      - uses: docker-login
+
+      - name: build-go-cube
+        script:
+          - cd golang-gin
+          - docker build -t $DOCKER_USER/benchmark-golang-gin:latest .
+          - docker push $DOCKER_USER/benchmark-golang-gin:latest
+
+
+  - name: get-env
+    cubes:
+      - name: print-env
+        script:
+          - env
+
+cubes:
+  - name: docker-login
+    script:
+      - echo $DOCKER_TOKEN | docker login -u $DOCKER_USER --password-stdin
