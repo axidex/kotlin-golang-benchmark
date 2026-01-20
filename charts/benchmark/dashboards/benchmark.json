@@ -1,6 +1,6 @@
 {
   "uid": "benchmark-performance-k8s",
-  "title": "Benchmark Performance (Quarkus vs Golang) - k8s",
+  "title": "Benchmark Performance - k8s",
   "tags": ["benchmark", "kubernetes"],
   "timezone": "browser",
   "schemaVersion": 39,
@@ -32,10 +32,18 @@
       {
         "type": "query",
         "name": "quarkus_service",
-        "label": "Quarkus service",
+        "label": "Quarkus JVM service",
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "query": { "query": "label_values(up{namespace=\"$namespace\"}, service)", "refId": "qs" },
-        "regex": "/.*quarkus.*/",
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus$\"}, service)", "refId": "qs" },
+        "sort": 1,
+        "refresh": 2
+      },
+      {
+        "type": "query",
+        "name": "quarkus_native_service",
+        "label": "Quarkus Native service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus-native.*\"}, service)", "refId": "qns" },
         "sort": 1,
         "refresh": 2
       },
@@ -44,17 +52,28 @@
         "name": "golang_service",
         "label": "Golang service",
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "query": { "query": "label_values(up{namespace=\"$namespace\"}, service)", "refId": "gs" },
-        "regex": "/.*golang.*/",
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*golang.*\"}, service)", "refId": "gs" },
         "sort": 1,
         "refresh": 2
       },
       {
         "type": "query",
         "name": "quarkus_pod",
-        "label": "Quarkus pod",
+        "label": "Quarkus JVM pod",
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$quarkus_service\"}, pod)", "refId": "qpod" },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "refresh": 2,
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "quarkus_native_pod",
+        "label": "Quarkus Native pod",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$quarkus_native_service\"}, pod)", "refId": "qnpod" },
         "multi": true,
         "includeAll": true,
         "allValue": ".*",
@@ -109,7 +128,8 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "golang"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
       "options": {
@@ -126,8 +146,14 @@
         {
           "refId": "B",
           "editorMode": "code",
+          "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
           "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"$golang_service\"}[1m])))",
-          "legendFormat": "golang"
+          "legendFormat": "golang-gin"
         }
       ]
     },
@@ -152,7 +178,8 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "golang"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
       "options": {
@@ -169,8 +196,14 @@
         {
           "refId": "B",
           "editorMode": "code",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "golang"
+          "legendFormat": "golang-gin"
         }
       ]
     },
@@ -194,7 +227,8 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "golang"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
       "options": {
@@ -211,8 +245,14 @@
         {
           "refId": "B",
           "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[30s]))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
           "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\"}[30s]))",
-          "legendFormat": "golang"
+          "legendFormat": "golang-gin"
         }
       ]
     },
@@ -237,7 +277,8 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "golang"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
       "options": {
@@ -254,8 +295,14 @@
         {
           "refId": "B",
           "editorMode": "code",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
-          "legendFormat": "golang"
+          "legendFormat": "golang-gin"
         }
       ]
     },
@@ -310,20 +357,38 @@
         {
           "refId": "D",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "golang usage"
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "legendFormat": "quarkus-native usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"cpu\",unit=\"core\"})",
-          "legendFormat": "golang limit"
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
+          "legendFormat": "quarkus-native limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
+          "legendFormat": "quarkus-native request"
+        },
+        {
+          "refId": "G",
+          "editorMode": "code",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "legendFormat": "golang-gin usage"
+        },
+        {
+          "refId": "H",
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"cpu\",unit=\"core\"})",
+          "legendFormat": "golang-gin limit"
+        },
+        {
+          "refId": "I",
+          "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"cpu\",unit=\"core\"})",
-          "legendFormat": "golang request"
+          "legendFormat": "golang-gin request"
         }
       ]
     },
@@ -378,20 +443,38 @@
         {
           "refId": "D",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
-          "legendFormat": "golang usage"
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-native usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
-          "legendFormat": "golang limit"
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-native limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-native request"
+        },
+        {
+          "refId": "G",
+          "editorMode": "code",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "legendFormat": "golang-gin usage"
+        },
+        {
+          "refId": "H",
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "legendFormat": "golang-gin limit"
+        },
+        {
+          "refId": "I",
+          "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
-          "legendFormat": "golang request"
+          "legendFormat": "golang-gin request"
         }
       ]
     },
@@ -416,7 +499,8 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "golang"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
       "options": {
@@ -433,8 +517,14 @@
         {
           "refId": "B",
           "editorMode": "code",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
           "expr": "100 * sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "golang"
+          "legendFormat": "golang-gin"
         }
       ]
     }

@@ -1,0 +1,22 @@
+{{- if .Values.quarkusNative.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "benchmark.fullname" . }}-quarkus-native
+  labels:
+    app: quarkus-native
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.quarkusNative.service.type }}
+  ports:
+  - port: {{ .Values.quarkusNative.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+    {{- if and (eq .Values.quarkusNative.service.type "NodePort") .Values.quarkusNative.service.nodePort }}
+    nodePort: {{ .Values.quarkusNative.service.nodePort }}
+    {{- end }}
+  selector:
+    app: quarkus-native
+    {{- include "benchmark.selectorLabels" . | nindent 4 }}
+{{- end }}
