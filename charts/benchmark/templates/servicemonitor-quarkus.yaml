@@ -1,0 +1,19 @@
+{{- if .Values.quarkus.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "benchmark.fullname" . }}-quarkus
+  labels:
+    app: quarkus
+    release: mon
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: quarkus
+      {{- include "benchmark.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: /q/metrics
+    interval: 5s
+{{- end }}

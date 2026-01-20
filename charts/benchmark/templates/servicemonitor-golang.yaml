@@ -1,0 +1,19 @@
+{{- if .Values.golang.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "benchmark.fullname" . }}-golang
+  labels:
+    app: golang
+    release: mon
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: golang
+      {{- include "benchmark.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 5s
+{{- end }}

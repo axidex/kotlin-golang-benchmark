@@ -3,7 +3,7 @@
 ####
 
 # Build stage
-FROM gradle:8.5-jdk17 AS builder
+FROM gradle:8.5-jdk21 AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ COPY src src
 RUN ./gradlew --no-daemon build -x test
 
 # Runtime stage
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
+FROM registry.access.redhat.com/ubi8/openjdk-21:1.20
 
 ENV LANGUAGE='en_US:en'
 

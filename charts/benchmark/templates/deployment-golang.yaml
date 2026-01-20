@@ -1,0 +1,50 @@
+{{- if .Values.golang.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "benchmark.fullname" . }}-golang
+  labels:
+    app: golang
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.golang.replicaCount }}
+  selector:
+    matchLabels:
+      app: golang
+      {{- include "benchmark.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: golang
+        {{- include "benchmark.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: golang
+        image: "{{ .Values.golang.image.repository }}:{{ .Values.golang.image.tag }}"
+        imagePullPolicy: {{ .Values.golang.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          value: "host={{ include "benchmark.fullname" . }}-postgresql user={{ .Values.postgresql.auth.username }} password={{ .Values.postgresql.auth.password }} dbname={{ .Values.postgresql.auth.database }} port=5432 sslmode=disable"
+        - name: PORT
+          value: "8080"
+        - name: GIN_MODE
+          value: "release"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          {{- toYaml .Values.golang.resources | nindent 10 }}
+{{- end }}

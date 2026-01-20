@@ -1,0 +1,19 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "benchmark.fullname" . }}-postgresql
+  labels:
+    app: postgresql
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: postgresql
+    protocol: TCP
+    name: postgresql
+  selector:
+    app: postgresql
+    {{- include "benchmark.selectorLabels" . | nindent 4 }}
+{{- end }}

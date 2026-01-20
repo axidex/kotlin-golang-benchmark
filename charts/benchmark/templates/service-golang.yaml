@@ -1,0 +1,22 @@
+{{- if .Values.golang.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "benchmark.fullname" . }}-golang
+  labels:
+    app: golang
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.golang.service.type }}
+  ports:
+  - port: {{ .Values.golang.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+    {{- if and (eq .Values.golang.service.type "NodePort") .Values.golang.service.nodePort }}
+    nodePort: {{ .Values.golang.service.nodePort }}
+    {{- end }}
+  selector:
+    app: golang
+    {{- include "benchmark.selectorLabels" . | nindent 4 }}
+{{- end }}

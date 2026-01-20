@@ -1,0 +1,24 @@
+# values-local.yaml
+# Для локального k3s без внешнего домена
+
+quarkus:
+  enabled: true
+  service:
+    type: NodePort  # Используем NodePort для локального доступа
+
+golang:
+  enabled: true
+  service:
+    type: NodePort  # Используем NodePort для локального доступа
+
+ingress:
+  enabled: false  # Отключаем Ingress для локального тестирования
+
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: postgres
+    database: benchmark
+  persistence:
+    size: 1Gi

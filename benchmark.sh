@@ -2,8 +2,8 @@
 
 # Benchmark script for comparing Quarkus and Gin performance
 
-QUARKUS_URL="http://localhost:8080"
-GOLANG_URL="http://localhost:8081"
+QUARKUS_URL="http://155.212.170.172:30080"
+GOLANG_URL="http://155.212.170.172:30081"
 REQUESTS=10000
 CONCURRENCY=100
 
@@ -58,11 +58,11 @@ echo "======================================"
 
 echo ""
 echo "Testing Quarkus (Kotlin)..."
-ab -n ${REQUESTS} -c ${CONCURRENCY} "http://127.0.0.1:8080/api/products"
+ab -n ${REQUESTS} -c ${CONCURRENCY} "${QUARKUS_URL}/api/products"
 
 echo ""
 echo "Testing Golang (Gin)..."
-ab -n ${REQUESTS} -c ${CONCURRENCY} "http://127.0.0.1:8081/api/products"
+ab -n ${REQUESTS} -c ${CONCURRENCY} "${GOLANG_URL}/api/products"
 
 echo ""
 echo "======================================"
@@ -73,11 +73,11 @@ PRODUCT_JSON='{"name":"Benchmark Product","description":"Test product for benchm
 
 echo ""
 echo "Testing Quarkus (Kotlin)..."
-ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "http://127.0.0.1:8080/api/products"
+ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "${QUARKUS_URL}/api/products"
 
 echo ""
 echo "Testing Golang (Gin)..."
-ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "http://127.0.0.1:8081/api/products"
+ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "${GOLANG_URL}/api/products"
 
 echo ""
 echo "======================================"

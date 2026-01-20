@@ -1,0 +1,67 @@
+quarkus:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: axidex/benchmark-kotlin-quarkus
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+golang:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: axidex/benchmark-golang-gin
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30081
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+ingress:
+  enabled: false
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: quarkus.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: quarkus
+    - host: golang.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: golang
+  tls:
+    - secretName: benchmark-tls
+      hosts:
+        - quarkus.example.com
+        - golang.example.com
+
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: postgres
+    database: benchmark
+  persistence:
+    size: 1Gi
