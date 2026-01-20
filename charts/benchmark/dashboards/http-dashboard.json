@@ -1,0 +1,798 @@
+{
+  "uid": "benchmark-http-k8s",
+  "title": "HTTP & Request Processing - k8s",
+  "tags": ["benchmark", "kubernetes", "http"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "editable": true,
+  "graphTooltip": 0,
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"] },
+  "templating": {
+    "list": [
+      {
+        "type": "datasource",
+        "name": "datasource",
+        "label": "Prometheus",
+        "query": "prometheus",
+        "current": { "selected": false, "text": "Prometheus", "value": "Prometheus" }
+      },
+      {
+        "type": "query",
+        "name": "namespace",
+        "label": "Namespace",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up, namespace)", "refId": "ns" },
+        "sort": 1,
+        "refresh": 2,
+        "current": { "selected": false, "text": "benchmark", "value": "benchmark" }
+      },
+      {
+        "type": "query",
+        "name": "quarkus_service",
+        "label": "Quarkus JVM service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus$\"}, service)", "refId": "qs" },
+        "sort": 1,
+        "refresh": 2
+      },
+      {
+        "type": "query",
+        "name": "quarkus_native_service",
+        "label": "Quarkus Native service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus-native.*\"}, service)", "refId": "qns" },
+        "sort": 1,
+        "refresh": 2
+      },
+      {
+        "type": "query",
+        "name": "golang_service",
+        "label": "Golang service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*golang.*\"}, service)", "refId": "gs" },
+        "sort": 1,
+        "refresh": 2
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Request Rate - Unified Comparison (req/s)",
+      "description": "Количество HTTP запросов в секунду для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]))",
+          "legendFormat": "quarkus-jvm total"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]))",
+          "legendFormat": "quarkus-native total"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin total"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Request Latency - Unified Comparison (ms)",
+      "description": "Среднее время обработки HTTP запросов",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]))",
+          "legendFormat": "quarkus-jvm avg"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]))",
+          "legendFormat": "quarkus-native avg"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_request_duration_seconds_sum{namespace=\"$namespace\",service=\"$golang_service\"}[1m])) / sum(rate(http_request_duration_seconds_count{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin avg"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "1000 * histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"$golang_service\"}[1m])))",
+          "legendFormat": "golang-gin p95"
+        },
+        {
+          "refId": "E",
+          "editorMode": "code",
+          "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"$namespace\",service=\"$golang_service\"}[1m])))",
+          "legendFormat": "golang-gin p99"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Active Requests - Unified Comparison",
+      "description": "Количество активных HTTP запросов в данный момент",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "http_server_active_requests{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "quarkus-jvm active"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "http_server_active_requests{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "quarkus-native active"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "promhttp_metric_handler_requests_in_flight{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "golang-gin active"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Network Throughput - Unified Comparison (KB/s)",
+      "description": "Объем отправленных данных по сети",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "KBs",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(http_server_bytes_written_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / 1024",
+          "legendFormat": "quarkus-jvm bytes written"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "rate(http_server_bytes_written_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]) / 1024",
+          "legendFormat": "quarkus-native bytes written"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Request Rate by Status Code (req/s)",
+      "description": "Количество запросов по статус-кодам для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*2xx.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*4xx.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*5xx.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\",status=~\"2..\"}[1m]))",
+          "legendFormat": "quarkus-jvm 2xx"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\",status=~\"4..\"}[1m]))",
+          "legendFormat": "quarkus-jvm 4xx"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\",status=~\"5..\"}[1m]))",
+          "legendFormat": "quarkus-jvm 5xx"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\",status=~\"2..\"}[1m]))",
+          "legendFormat": "quarkus-native 2xx"
+        },
+        {
+          "refId": "E",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\",status=~\"4..\"}[1m]))",
+          "legendFormat": "quarkus-native 4xx"
+        },
+        {
+          "refId": "F",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\",status=~\"5..\"}[1m]))",
+          "legendFormat": "quarkus-native 5xx"
+        },
+        {
+          "refId": "G",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\",status=~\"2..\"}[1m]))",
+          "legendFormat": "golang-gin 2xx"
+        },
+        {
+          "refId": "H",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\",status=~\"4..\"}[1m]))",
+          "legendFormat": "golang-gin 4xx"
+        },
+        {
+          "refId": "I",
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\",status=~\"5..\"}[1m]))",
+          "legendFormat": "golang-gin 5xx"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Error Rate (%)",
+      "description": "Процент ошибок (4xx + 5xx) от общего количества запросов",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\",status=~\"[45]..\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]))",
+          "legendFormat": "quarkus-jvm error rate"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\",status=~\"[45]..\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]))",
+          "legendFormat": "quarkus-native error rate"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\",status=~\"[45]..\"}[1m])) / sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin error rate"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Quarkus JVM - Latency by Endpoint (ms)",
+      "description": "Среднее время обработки по эндпоинтам",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "1000 * rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])",
+          "legendFormat": "{{method}} {{uri}} ({{status}})"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Quarkus Native - Latency by Endpoint (ms)",
+      "description": "Среднее время обработки по эндпоинтам",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "1000 * rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]) / rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])",
+          "legendFormat": "{{method}} {{uri}} ({{status}})"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Connection Duration (seconds)",
+      "description": "Длительность HTTP соединений для Quarkus приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "http_server_connections_seconds_duration_sum{namespace=\"$namespace\",service=\"$quarkus_service\"} / http_server_connections_seconds_active_count{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "quarkus-jvm avg connection duration"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "http_server_connections_seconds_duration_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"} / http_server_connections_seconds_active_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "quarkus-native avg connection duration"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "http_server_connections_seconds_active_count{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "quarkus-jvm active connections"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "http_server_connections_seconds_active_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "quarkus-native active connections"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Response Size Distribution (bytes)",
+      "description": "Средний размер ответа от сервера",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(http_server_bytes_written_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / rate(http_server_bytes_written_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])",
+          "legendFormat": "quarkus-jvm avg response size"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "rate(http_server_bytes_written_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]) / rate(http_server_bytes_written_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])",
+          "legendFormat": "quarkus-native avg response size"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "http_server_bytes_written_max{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "quarkus-jvm max response size"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "http_server_bytes_written_max{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "quarkus-native max response size"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Total Requests",
+      "description": "Общее количество обработанных запросов",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 60 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 10000, "color": "yellow" },
+              { "value": 100000, "color": "orange" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"})",
+          "legendFormat": "quarkus-jvm"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"})",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "sum(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\"})",
+          "legendFormat": "golang-gin"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Current Request Rate",
+      "description": "Текущая частота запросов",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 60 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 100, "color": "yellow" },
+              { "value": 1000, "color": "orange" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]))",
+          "legendFormat": "quarkus-jvm"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "sum(rate(http_requests_total{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Average Latency",
+      "description": "Средняя задержка обработки запросов",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 60 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 100, "color": "yellow" },
+              { "value": 500, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]))",
+          "legendFormat": "quarkus-jvm"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_server_requests_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])) / sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]))",
+          "legendFormat": "quarkus-native"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "1000 * sum(rate(http_request_duration_seconds_sum{namespace=\"$namespace\",service=\"$golang_service\"}[1m])) / sum(rate(http_request_duration_seconds_count{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin"
+        }
+      ]
+    }
+  ]
+}

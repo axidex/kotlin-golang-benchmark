@@ -28,7 +28,11 @@ spec:
           protocol: TCP
         env:
         - name: DATABASE_URL
-          value: "host={{ include "benchmark.fullname" . }}-postgresql user={{ .Values.postgresql.auth.username }} password={{ .Values.postgresql.auth.password }} dbname={{ .Values.postgresql.auth.database }} port=5432 sslmode=disable"
+          {{- if .Values.pgbouncer.enabled }}
+          value: "postgres://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "benchmark.fullname" . }}-pgbouncer:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
+          {{- else }}
+          value: "postgres://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "benchmark.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
+          {{- end }}
         - name: PORT
           value: "8080"
         - name: GIN_MODE

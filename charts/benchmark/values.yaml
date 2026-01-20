@@ -84,3 +84,27 @@ postgresql:
     database: benchmark
   persistence:
     size: 1Gi
+
+pgbouncer:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: edoburu/pgbouncer
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Pool mode: session, transaction, or statement
+  # transaction - recommended for most use cases
+  poolMode: transaction
+  # Maximum client connections
+  maxClientConn: 1000
+  # Default pool size (connections per user+database pair)
+  defaultPoolSize: 25
+  # Listen port
+  listenPort: 5432
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

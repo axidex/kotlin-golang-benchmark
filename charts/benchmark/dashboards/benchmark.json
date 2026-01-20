@@ -123,7 +123,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 50,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -173,7 +173,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 50,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -222,7 +222,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 50,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -272,7 +272,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 50,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -322,7 +322,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 10,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -408,7 +408,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 10,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [
@@ -494,7 +494,7 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "fillOpacity": 50,
-            "showPoints": "auto"
+            "showPoints": "never"
           }
         },
         "overrides": [

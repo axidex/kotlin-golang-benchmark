@@ -1,0 +1,803 @@
+{
+  "uid": "benchmark-gc-k8s",
+  "title": "Garbage Collection Performance - k8s",
+  "tags": ["benchmark", "kubernetes", "gc"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "editable": true,
+  "graphTooltip": 0,
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"] },
+  "templating": {
+    "list": [
+      {
+        "type": "datasource",
+        "name": "datasource",
+        "label": "Prometheus",
+        "query": "prometheus",
+        "current": { "selected": false, "text": "Prometheus", "value": "Prometheus" }
+      },
+      {
+        "type": "query",
+        "name": "namespace",
+        "label": "Namespace",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up, namespace)", "refId": "ns" },
+        "sort": 1,
+        "refresh": 2,
+        "current": { "selected": false, "text": "benchmark", "value": "benchmark" }
+      },
+      {
+        "type": "query",
+        "name": "quarkus_service",
+        "label": "Quarkus JVM service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus$\"}, service)", "refId": "qs" },
+        "sort": 1,
+        "refresh": 2
+      },
+      {
+        "type": "query",
+        "name": "quarkus_native_service",
+        "label": "Quarkus Native service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus-native.*\"}, service)", "refId": "qns" },
+        "sort": 1,
+        "refresh": 2
+      },
+      {
+        "type": "query",
+        "name": "golang_service",
+        "label": "Golang service",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*golang.*\"}, service)", "refId": "gs" },
+        "sort": 1,
+        "refresh": 2
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "GC Pause Time - Unified Comparison (ms)",
+      "description": "Сравнение времени пауз GC для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "1000 * rate(jvm_gc_pause_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / rate(jvm_gc_pause_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])",
+          "legendFormat": "quarkus-jvm {{action}}"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "1000 * rate(jvm_gc_pause_seconds_sum{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m]) / rate(jvm_gc_pause_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])",
+          "legendFormat": "quarkus-native {{action}}"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "1000 * rate(go_gc_duration_seconds_sum{namespace=\"$namespace\",service=\"$golang_service\"}[1m]) / rate(go_gc_duration_seconds_count{namespace=\"$namespace\",service=\"$golang_service\"}[1m])",
+          "legendFormat": "golang-gin avg"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "1000 * histogram_quantile(0.99, rate(go_gc_duration_seconds_bucket{namespace=\"$namespace\",service=\"$golang_service\"}[1m]))",
+          "legendFormat": "golang-gin p99"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "GC Frequency - Unified Comparison (collections/sec)",
+      "description": "Сравнение частоты вызовов GC для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(jvm_gc_pause_seconds_count{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m])",
+          "legendFormat": "quarkus-jvm {{action}}"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "rate(jvm_gc_pause_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])",
+          "legendFormat": "quarkus-native {{action}}"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "rate(go_gc_duration_seconds_count{namespace=\"$namespace\",service=\"$golang_service\"}[1m])",
+          "legendFormat": "golang-gin"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Heap Memory Usage - Unified Comparison (MB)",
+      "description": "Сравнение использования памяти в куче для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (service) (jvm_memory_used_bytes{namespace=\"$namespace\",service=\"$quarkus_service\",area=\"heap\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-jvm heap used"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum by (service) (jvm_memory_used_bytes{namespace=\"$namespace\",service=\"$quarkus_native_service\",area=\"heap\"}) / 1024 / 1024",
+          "legendFormat": "quarkus-native heap used"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "go_memstats_heap_inuse_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "golang-gin heap in use"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Threads / Goroutines - Unified Comparison",
+      "description": "Сравнение количества потоков и горутин для всех приложений",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*quarkus-jvm.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*native.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*golang.*" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_threads_live_threads{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "quarkus-jvm live threads"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "jvm_threads_live_threads{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "quarkus-native live threads"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "go_goroutines{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "golang-gin goroutines"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "go_threads{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "golang-gin OS threads"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "JVM Memory Allocation Rate (MB/s)",
+      "description": "Скорость выделения памяти для Quarkus JVM",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MBs",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(jvm_gc_memory_allocated_bytes_total{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / 1024 / 1024",
+          "legendFormat": "allocation rate"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Golang GC CPU Fraction (%)",
+      "description": "Процент CPU времени, затраченного на GC",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "go_memstats_gc_cpu_fraction{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "GC CPU fraction"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "JVM Heap Memory After GC (MB)",
+      "description": "Размер живых объектов в куче после GC",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_gc_live_data_size_bytes{namespace=\"$namespace\",service=\"$quarkus_service\"} / 1024 / 1024",
+          "legendFormat": "live data size"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "jvm_gc_max_data_size_bytes{namespace=\"$namespace\",service=\"$quarkus_service\"} / 1024 / 1024",
+          "legendFormat": "max data size"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Golang Heap Allocations (MB)",
+      "description": "Объем выделенной и используемой памяти в куче Golang",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "go_memstats_heap_alloc_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "heap alloc"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "go_memstats_heap_inuse_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "heap in use"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "go_memstats_heap_idle_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "heap idle"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "JVM Memory Promotion Rate (MB/s)",
+      "description": "Скорость переноса объектов в старое поколение",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 50 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MBs",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "rate(jvm_gc_memory_promoted_bytes_total{namespace=\"$namespace\",service=\"$quarkus_service\"}[1m]) / 1024 / 1024",
+          "legendFormat": "promotion rate"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Golang Last GC Time",
+      "description": "Время с последнего GC в секундах",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 5, "color": "yellow" },
+              { "value": 10, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "time() - go_memstats_last_gc_time_seconds{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "time since last GC"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "JVM GC Overhead (%)",
+      "description": "Процент CPU времени, затраченного на GC для JVM",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 58 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_gc_overhead{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "GC overhead"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Threads / Goroutines Count",
+      "description": "Количество потоков (JVM) и горутин (Golang)",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 58 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_threads_live_threads{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "Quarkus JVM live threads"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "jvm_threads_peak_threads{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "Quarkus JVM peak threads"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "jvm_threads_live_threads{namespace=\"$namespace\",service=\"$quarkus_native_service\"}",
+          "legendFormat": "Quarkus Native live threads"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "expr": "go_goroutines{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "Golang goroutines"
+        },
+        {
+          "refId": "E",
+          "editorMode": "code",
+          "expr": "go_threads{namespace=\"$namespace\",service=\"$golang_service\"}",
+          "legendFormat": "Golang OS threads"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "JVM Thread States",
+      "description": "Распределение потоков по состояниям",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 66 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_threads_states_threads{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "{{state}}"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Golang Next GC Threshold (MB)",
+      "description": "Порог кучи, при котором произойдет следующая GC",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 66 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "go_memstats_next_gc_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "next GC threshold"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "go_memstats_heap_alloc_bytes{namespace=\"$namespace\",service=\"$golang_service\"} / 1024 / 1024",
+          "legendFormat": "current heap alloc"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "JVM Heap Usage After GC (%)",
+      "description": "Процент использования long-lived heap pool после GC",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 74 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "jvm_memory_usage_after_gc{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "heap usage after GC"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "JVM Worker Pool (Vert.x)",
+      "description": "Состояние пулов потоков Vert.x: активные, простаивающие, очередь",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 74 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 30,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "worker_pool_active{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "{{pool_name}} active"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "worker_pool_idle{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "{{pool_name}} idle"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "expr": "worker_pool_queue_size{namespace=\"$namespace\",service=\"$quarkus_service\"}",
+          "legendFormat": "{{pool_name}} queue"
+        }
+      ]
+    }
+  ]
+}

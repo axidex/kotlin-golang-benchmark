@@ -8,3 +8,7 @@ metadata:
 data:
   benchmark-dashboard.json: |-
 {{ .Files.Get "dashboards/benchmark.json" | indent 4 }}
+  gc-dashboard.json: |-
+{{ .Files.Get "dashboards/gc-dashboard.json" | indent 4 }}
+  http-dashboard.json: |-
+{{ .Files.Get "dashboards/http-dashboard.json" | indent 4 }}

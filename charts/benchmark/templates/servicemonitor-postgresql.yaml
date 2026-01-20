@@ -1,0 +1,18 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "benchmark.fullname" . }}-postgresql
+  labels:
+    app: postgresql
+    release: mon
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: postgresql
+      {{- include "benchmark.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: postgresql
+    interval: 15s
+{{- end }}

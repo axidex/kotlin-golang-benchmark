@@ -35,6 +35,16 @@ spec:
           value: {{ .Values.postgresql.auth.database | quote }}
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
+        {{- if .Values.pgbouncer.enabled }}
+        - name: POSTGRES_MAX_CONNECTIONS
+          value: "100"
+        {{- end }}
+        command:
+        - postgres
+        {{- if .Values.pgbouncer.enabled }}
+        - -c
+        - max_connections=100
+        {{- end }}
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data

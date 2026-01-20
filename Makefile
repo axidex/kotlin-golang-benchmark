@@ -1,4 +1,4 @@
-.PHONY: install upgrade remove
+.PHONY: install upgrade remove benchmark
 
 NAMESPACE ?= benchmark
 RELEASE_NAME ?= benchmark
@@ -19,3 +19,6 @@ upgrade:
 
 remove:
 	helm uninstall $(RELEASE_NAME) -n $(NAMESPACE) --kubeconfig $(KUBECONFIG)
+
+benchmark:
+	sh benchmark.sh

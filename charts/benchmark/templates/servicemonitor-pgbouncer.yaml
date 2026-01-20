@@ -1,0 +1,19 @@
+{{- if and .Values.postgresql.enabled .Values.pgbouncer.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "benchmark.fullname" . }}-pgbouncer
+  labels:
+    app: pgbouncer
+    release: mon
+    {{- include "benchmark.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: pgbouncer
+      {{- include "benchmark.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: pgbouncer
+    interval: 15s
+    path: /metrics
+{{- end }}

@@ -28,7 +28,11 @@ spec:
           protocol: TCP
         env:
         - name: QUARKUS_DATASOURCE_JDBC_URL
+          {{- if .Values.pgbouncer.enabled }}
+          value: "jdbc:postgresql://{{ include "benchmark.fullname" . }}-pgbouncer:5432/{{ .Values.postgresql.auth.database }}"
+          {{- else }}
           value: "jdbc:postgresql://{{ include "benchmark.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+          {{- end }}
         - name: QUARKUS_DATASOURCE_USERNAME
           value: "{{ .Values.postgresql.auth.username }}"
         - name: QUARKUS_DATASOURCE_PASSWORD
