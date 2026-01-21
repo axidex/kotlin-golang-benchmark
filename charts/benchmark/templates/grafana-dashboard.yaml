@@ -12,3 +12,5 @@ data:
 {{ .Files.Get "dashboards/gc-dashboard.json" | indent 4 }}
   http-dashboard.json: |-
 {{ .Files.Get "dashboards/http-dashboard.json" | indent 4 }}
+  connection-pool-dashboard.json: |-
+{{ .Files.Get "dashboards/connection-pool-dashboard.json" | indent 4 }}

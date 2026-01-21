@@ -3,11 +3,13 @@ package database
 import (
 	"log"
 	"os"
+	"time"
 
 	"dev.sourcecraft.dolgintsev/golang-gin/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	gormprometheus "gorm.io/plugin/prometheus"
 )
 
 var DB *gorm.DB
@@ -46,8 +48,25 @@ func Connect() {
 	// Set connection pool parameters
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	log.Println("Database connected successfully")
+
+	// Initialize Prometheus plugin for connection pool metrics
+	err = DB.Use(gormprometheus.New(gormprometheus.Config{
+		DBName:          "benchmark",
+		RefreshInterval: 15, // Refresh metrics every 15 seconds
+		MetricsCollector: []gormprometheus.MetricsCollector{
+			&gormprometheus.Postgres{
+				VariableNames: []string{"max_connections"},
+			},
+		},
+	}))
+	if err != nil {
+		log.Printf("Warning: Failed to initialize Prometheus plugin: %v", err)
+	} else {
+		log.Println("Prometheus metrics enabled for database connection pool")
+	}
 
 	// Auto migrate the schema
 	err = DB.AutoMigrate(&models.Product{})
@@ -56,5 +75,5 @@ func Connect() {
 	}
 
 	log.Println("Database migration completed")
-	log.Printf("Connection pool: max open=%d, max idle=%d", 100, 10)
+	log.Printf("Connection pool: max open=%d, max idle=%d, max lifetime=%s", 100, 10, time.Hour)
 }
