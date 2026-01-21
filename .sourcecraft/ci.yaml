@@ -26,6 +26,9 @@ workflows:
       - name: build-kotlin-native
         uses: build-kotlin-native-task
 
+      - name: build-benchmark-runner
+        uses: build-benchmark-runner-task
+
 
 
   get-env:
@@ -67,6 +70,16 @@ tasks:
           - cd kotlin-quarkus
           - docker build -t $DOCKER_USER/benchmark-kotlin-quarkus-native:latest -f Dockerfile.native .
           - docker push $DOCKER_USER/benchmark-kotlin-quarkus-native:latest
+
+  - name: build-benchmark-runner-task
+    cubes:
+      - uses: docker-login
+
+      - name: build-benchmark-runner-cube
+        script:
+          - cd benchmark-runner
+          - docker build -t $DOCKER_USER/benchmark-runner:latest .
+          - docker push $DOCKER_USER/benchmark-runner:latest
 
 
   - name: get-env

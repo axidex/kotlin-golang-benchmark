@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-${BENCHMARK_NAME}
+  namespace: benchmark
+  labels:
+    app: benchmark-runner
+    benchmark-type: ${BENCHMARK_TYPE}
+    target: ${TARGET_APP}
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: benchmark-runner
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: benchmark-runner
+        image: axidex/benchmark-runner:latest
+        imagePullPolicy: Always
+        args:
+        - "-url=${TARGET_URL}"
+        - "-type=${BENCHMARK_TYPE}"
+        - "-rps=${RPS}"
+        - "-duration=${DURATION}"
+        - "-concurrency=${CONCURRENCY}"
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 256Mi

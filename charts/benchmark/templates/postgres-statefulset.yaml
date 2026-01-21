@@ -19,6 +19,22 @@ spec:
         app: postgresql
         {{- include "benchmark.selectorLabels" . | nindent 8 }}
     spec:
+      securityContext:
+        fsGroup: 999
+      initContainers:
+      - name: fix-permissions
+        image: busybox:latest
+        command:
+        - sh
+        - -c
+        - |
+          chown -R 999:999 /var/lib/postgresql/data
+          chmod 700 /var/lib/postgresql/data/pgdata || true
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          runAsUser: 0
       containers:
       - name: postgresql
         image: postgres:16
@@ -26,6 +42,10 @@ spec:
         - name: postgresql
           containerPort: 5432
           protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 999
+          runAsNonRoot: true
         env:
         - name: POSTGRES_USER
           value: {{ .Values.postgresql.auth.username | quote }}

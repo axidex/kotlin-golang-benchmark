@@ -1,0 +1,62 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "benchmark.fullname" . }}-postgres-migration
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "benchmark.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres-migration
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: postgres-migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migration
+        image: postgres:16-alpine
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h {{ include "benchmark.fullname" . }}-postgresql -p 5432 -U {{ .Values.postgresql.auth.username }}; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+          echo "Running database migrations..."
+          psql -v ON_ERROR_STOP=1 <<-EOSQL
+            -- Fix products table id column to use sequence
+            ALTER TABLE IF EXISTS products
+            ALTER COLUMN id SET DEFAULT nextval('products_seq');
+
+            -- Ensure sequence ownership
+            ALTER SEQUENCE IF EXISTS products_seq OWNED BY products.id;
+
+            -- Sync sequence to current max id
+            SELECT setval('products_seq', COALESCE((SELECT MAX(id) FROM products), 1), true);
+
+            SELECT 'Migration completed successfully!' as status;
+          EOSQL
+
+          echo "Database migration completed"
+        env:
+        - name: PGHOST
+          value: {{ include "benchmark.fullname" . }}-postgresql
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: {{ .Values.postgresql.auth.database | quote }}
+        - name: PGUSER
+          value: {{ .Values.postgresql.auth.username | quote }}
+        - name: PGPASSWORD
+          value: {{ .Values.postgresql.auth.password | quote }}
+{{- end }}

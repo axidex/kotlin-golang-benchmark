@@ -69,15 +69,22 @@ echo "======================================"
 echo "2. POST Create Product Benchmark"
 echo "======================================"
 
-PRODUCT_JSON='{"name":"Benchmark Product","description":"Test product for benchmark","price":99.99,"quantity":100}'
+# Create temporary file with JSON data
+TEMP_JSON=$(mktemp)
+cat > "${TEMP_JSON}" << 'EOF'
+{"name":"Benchmark Product","description":"Test product for benchmark","price":99.99,"quantity":100}
+EOF
 
 echo ""
 echo "Testing Quarkus (Kotlin)..."
-ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "${QUARKUS_URL}/api/products"
+ab -n 1000 -c 10 -p "${TEMP_JSON}" -T "application/json" "${QUARKUS_URL}/api/products"
 
 echo ""
 echo "Testing Golang (Gin)..."
-ab -n 1000 -c 10 -p <(echo ${PRODUCT_JSON}) -T "application/json" "${GOLANG_URL}/api/products"
+ab -n 1000 -c 10 -p "${TEMP_JSON}" -T "application/json" "${GOLANG_URL}/api/products"
+
+# Clean up temporary file
+rm -f "${TEMP_JSON}"
 
 echo ""
 echo "======================================"

@@ -38,7 +38,7 @@ spec:
         - name: DB_NAME
           value: {{ .Values.postgresql.auth.database | quote }}
         - name: AUTH_TYPE
-          value: "md5"
+          value: "scram-sha-256"
         - name: ADMIN_USERS
           value: {{ .Values.postgresql.auth.username | quote }}
         - name: LISTEN_PORT
