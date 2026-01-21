@@ -33,16 +33,21 @@ OPTIONS:
 
 EXAMPLES:
     # Run GET products benchmark on Quarkus with 100 RPS for 1 minute
-    ${0##*/} -a quarkus -t get-products -r 100 -d 1m
+    ${0##*/} -a quarkus -t get-products -r 100 -d 1m -c 5
 
     # Run POST benchmark on Golang with 200 RPS for 30 seconds
     ${0##*/} -a golang -t create-product -r 200 -d 30s -c 20
 
-    # Full CRUD cycle benchmark (create, get, update, delete)
-    ${0##*/} -a quarkus -t mixed-crud -r 50 -d 1m -c 5
+    # Full CRUD cycle benchmark (requires high concurrency due to long operations)
+    ${0##*/} -a quarkus -t mixed-crud -r 50 -d 1m -c 20
+    ${0##*/} -a quarkus -t mixed-crud -r 100 -d 1m -c 40
+    ${0##*/} -a quarkus -t mixed-crud -r 500 -d 1m -c 200
 
-    # High load test on native Quarkus
-    ${0##*/} -a quarkus-native -r 1000 -d 5m -c 50
+    # High load test on native Quarkus (fast GET requests need less concurrency)
+    ${0##*/} -a quarkus-native -t get-products -r 1000 -d 5m -c 50
+
+    # High load mixed-crud test (needs 300-400 workers for 1000 RPS)
+    ${0##*/} -a quarkus -t mixed-crud -r 1000 -d 1m -c 350
 
 EOF
 }

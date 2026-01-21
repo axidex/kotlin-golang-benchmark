@@ -58,16 +58,32 @@ spec:
         {{- if .Values.pgbouncer.enabled }}
         - name: POSTGRES_MAX_CONNECTIONS
           value: "100"
+        {{- else }}
+        - name: POSTGRES_MAX_CONNECTIONS
+          value: "400"
         {{- end }}
         command:
         - postgres
         {{- if .Values.pgbouncer.enabled }}
         - -c
         - max_connections=100
+        {{- else }}
+        - -c
+        - max_connections=400
+        - -c
+        - shared_buffers=256MB
+        - -c
+        - work_mem=4MB
+        - -c
+        - maintenance_work_mem=64MB
+        - -c
+        - effective_cache_size=1GB
         {{- end }}
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data
+        resources:
+          {{- toYaml .Values.postgresql.resources | nindent 10 }}
         livenessProbe:
           exec:
             command:

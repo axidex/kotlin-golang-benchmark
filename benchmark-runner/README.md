@@ -92,10 +92,31 @@ kubectl logs -f job/benchmark-test-$(date +%s) -n benchmark --kubeconfig=~/.kube
 
 ## Benchmark Types
 
-1. **get-products** - GET request to `/api/products`
-2. **create-product** - POST request to `/api/products` with product JSON
-3. **get-product-by-id** - GET request to `/api/products/1`
-4. **mixed-crud** - Full CRUD cycle: CREATE → GET → UPDATE → DELETE (realistic workflow)
+1. **get-products** - GET request to `/api/products` (fast, ~10-50ms latency)
+2. **create-product** - POST request to `/api/products` with product JSON (medium, ~50-100ms latency)
+3. **get-product-by-id** - GET request to `/api/products/1` (fast, ~10-30ms latency)
+4. **mixed-crud** - Full CRUD cycle: CREATE → GET → UPDATE → DELETE (slow, ~300-500ms latency, requires high concurrency)
+
+### Concurrency Recommendations
+
+The concurrency parameter depends on your target RPS and expected latency:
+
+**Formula:** `concurrency ≈ (RPS × average_latency_seconds)`
+
+Examples:
+- **get-products** (20ms latency):
+  - RPS=100 → concurrency=2-5
+  - RPS=1000 → concurrency=20-50
+- **create-product** (50ms latency):
+  - RPS=100 → concurrency=5-10
+  - RPS=1000 → concurrency=50-100
+- **mixed-crud** (300ms latency):
+  - RPS=50 → concurrency=15-20
+  - RPS=100 → concurrency=30-50
+  - RPS=500 → concurrency=150-200
+  - RPS=1000 → concurrency=300-400
+
+**Note:** If actual RPS is much lower than target RPS, increase concurrency. Workers are blocking on I/O, so higher concurrency is needed for long-running operations.
 
 ## Output
 

@@ -28,8 +28,8 @@ spec:
         - "-concurrency=${CONCURRENCY}"
         resources:
           limits:
+            cpu: 2000m
+            memory: 1Gi
+          requests:
             cpu: 1000m
             memory: 512Mi
-          requests:
-            cpu: 500m
-            memory: 256Mi
