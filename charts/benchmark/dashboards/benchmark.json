@@ -41,7 +41,7 @@
       {
         "type": "query",
         "name": "quarkus_native_service",
-        "label": "Quarkus Native service",
+        "label": "Quarkus GRAALVM service",
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*quarkus-native.*\"}, service)", "refId": "qns" },
         "sort": 1,
@@ -71,7 +71,7 @@
       {
         "type": "query",
         "name": "quarkus_native_pod",
-        "label": "Quarkus Native pod",
+        "label": "Quarkus GRAALVM pod",
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$quarkus_native_service\"}, pod)", "refId": "qnpod" },
         "multi": true,
@@ -128,7 +128,7 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "quarkus-graalvm" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
           { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
@@ -147,7 +147,7 @@
           "refId": "B",
           "editorMode": "code",
           "expr": "1000 * histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[1m])))",
-          "legendFormat": "quarkus-native"
+          "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
@@ -178,7 +178,7 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "quarkus-graalvm" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
           { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
@@ -197,7 +197,7 @@
           "refId": "B",
           "editorMode": "code",
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "quarkus-native"
+          "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
@@ -227,7 +227,7 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "quarkus-graalvm" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
           { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
@@ -246,7 +246,7 @@
           "refId": "B",
           "editorMode": "code",
           "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"$namespace\",service=\"$quarkus_native_service\"}[30s]))",
-          "legendFormat": "quarkus-native"
+          "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
@@ -277,7 +277,7 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "quarkus-graalvm" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
           { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
@@ -296,7 +296,7 @@
           "refId": "B",
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
-          "legendFormat": "quarkus-native"
+          "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
@@ -358,19 +358,19 @@
           "refId": "D",
           "editorMode": "code",
           "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "quarkus-native usage"
+          "legendFormat": "quarkus-graalvm usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
-          "legendFormat": "quarkus-native limit"
+          "legendFormat": "quarkus-graalvm limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
-          "legendFormat": "quarkus-native request"
+          "legendFormat": "quarkus-graalvm request"
         },
         {
           "refId": "G",
@@ -444,19 +444,19 @@
           "refId": "D",
           "editorMode": "code",
           "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
-          "legendFormat": "quarkus-native usage"
+          "legendFormat": "quarkus-graalvm usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
-          "legendFormat": "quarkus-native limit"
+          "legendFormat": "quarkus-graalvm limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
-          "legendFormat": "quarkus-native request"
+          "legendFormat": "quarkus-graalvm request"
         },
         {
           "refId": "G",
@@ -499,7 +499,7 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "quarkus" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "quarkus-native" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "quarkus-graalvm" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
           { "matcher": { "id": "byName", "options": "golang-gin"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
         ]
       },
@@ -511,19 +511,19 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
-          "legendFormat": "quarkus-native"
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "golang-gin"
         }
       ]

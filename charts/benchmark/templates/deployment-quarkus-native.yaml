@@ -37,6 +37,10 @@ spec:
           value: "{{ .Values.postgresql.auth.username }}"
         - name: QUARKUS_DATASOURCE_PASSWORD
           value: "{{ .Values.postgresql.auth.password }}"
+        - name: QUARKUS_DATASOURCE_JDBC_MAX_SIZE
+          value: "{{ .Values.quarkusNative.dbMaxSize }}"
+        - name: QUARKUS_DATASOURCE_JDBC_MIN_SIZE
+          value: "{{ .Values.quarkusNative.dbMinSize }}"
         livenessProbe:
           httpGet:
             path: /q/health/live

@@ -15,7 +15,6 @@ USER quarkus
 WORKDIR /code
 COPY src /code/src
 
-# ВАЖНО: собираем только native (иначе будет ошибка про native+JAR)
 RUN ./gradlew clean quarkusBuild \
       -Dquarkus.native.enabled=true \
       -Dquarkus.package.type=native \

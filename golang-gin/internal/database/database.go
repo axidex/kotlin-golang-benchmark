@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"dev.sourcecraft.dolgintsev/golang-gin/internal/models"
@@ -23,9 +24,9 @@ func Connect() {
 		dsn = "postgres://postgres:postgres@localhost:5432/benchmark?sslmode=disable"
 	}
 
-	// Configure GORM logger
+	// Configure GORM logger - only show errors, not INFO/WARN
 	logConfig := gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	}
 
 	pgConfig := postgres.Config{
@@ -45,10 +46,15 @@ func Connect() {
 		log.Fatal("Failed to get database instance:", err)
 	}
 
+	// Get connection pool parameters from environment variables with defaults
+	maxOpenConns := getEnvAsInt("DB_MAX_OPEN_CONNS", 300)
+	maxIdleConns := getEnvAsInt("DB_MAX_IDLE_CONNS", 50)
+	connMaxLifetime := getEnvAsDuration("DB_CONN_MAX_LIFETIME", time.Hour)
+
 	// Set connection pool parameters
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
 	log.Println("Database connected successfully")
 
@@ -75,5 +81,33 @@ func Connect() {
 	}
 
 	log.Println("Database migration completed")
-	log.Printf("Connection pool: max open=%d, max idle=%d, max lifetime=%s", 100, 10, time.Hour)
+	log.Printf("Connection pool: max open=%d, max idle=%d, max lifetime=%s", maxOpenConns, maxIdleConns, connMaxLifetime)
+}
+
+// Helper function to get environment variable as integer with default value
+func getEnvAsInt(key string, defaultValue int) int {
+	valueStr := os.Getenv(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		log.Printf("Warning: Invalid value for %s, using default %d", key, defaultValue)
+		return defaultValue
+	}
+	return value
+}
+
+// Helper function to get environment variable as duration with default value
+func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
+	valueStr := os.Getenv(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+	value, err := time.ParseDuration(valueStr)
+	if err != nil {
+		log.Printf("Warning: Invalid duration for %s, using default %s", key, defaultValue)
+		return defaultValue
+	}
+	return value
 }

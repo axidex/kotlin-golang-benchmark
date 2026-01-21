@@ -9,13 +9,16 @@ quarkus:
     type: NodePort
     port: 8080
     nodePort: 30080
+  # Database connection pool settings
+  dbMaxSize: 150
+  dbMinSize: 50
   resources:
     limits:
       cpu: 1000m
-      memory: 512Mi
+      memory: 1024Mi
     requests:
       cpu: 500m
-      memory: 256Mi
+      memory: 512Mi
 
 golang:
   enabled: true
@@ -28,13 +31,17 @@ golang:
     type: NodePort
     port: 8080
     nodePort: 30081
+  # Database connection pool settings
+  dbMaxOpenConns: 150
+  dbMaxIdleConns: 50
+  dbConnMaxLifetime: "1h"
   resources:
     limits:
       cpu: 1000m
-      memory: 512Mi
+      memory: 1024Mi
     requests:
       cpu: 500m
-      memory: 256Mi
+      memory: 512Mi
 
 quarkusNative:
   enabled: true
@@ -47,6 +54,9 @@ quarkusNative:
     type: NodePort
     port: 8080
     nodePort: 30082
+  # Database connection pool settings
+  dbMaxSize: 150
+  dbMinSize: 50
   resources:
     limits:
       cpu: 1000m
@@ -83,14 +93,28 @@ postgresql:
     password: postgres
     database: benchmark
   persistence:
-    size: 1Gi
+    size: 2Gi
+  primary:
+    extendedConfiguration: |
+      max_connections = 1000
+      shared_buffers = 512MB
+      effective_cache_size = 1536MB
+      maintenance_work_mem = 128MB
+      checkpoint_completion_target = 0.9
+      wal_buffers = 16MB
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = 2621kB
+      min_wal_size = 1GB
+      max_wal_size = 4GB
   resources:
     limits:
       cpu: 2000m
-      memory: 2Gi
+      memory: 3000Mi
     requests:
       cpu: 1000m
-      memory: 1Gi
+      memory: 1500Mi
 
 pgbouncer:
   enabled: false
