@@ -1,8 +1,8 @@
 # Kotlin Quarkus vs Golang Gin Benchmark
 
-Проект для сравнения производительности CRUD приложений на Quarkus (Kotlin) и Gin (Golang) с использованием PostgreSQL, Prometheus и Grafana.
+Project for comparing performance of CRUD applications on Quarkus (Kotlin) and Gin (Golang) using PostgreSQL, Prometheus and Grafana.
 
-## Архитектура
+## Architecture
 
 ```
 ┌─────────────────┐     ┌─────────────────┐
@@ -19,24 +19,24 @@
     └──────────┘ └──────────┘ └───────────┘
 ```
 
-## Быстрый старт
+## Quick start
 
-### 1. Запуск всех сервисов
+### 1. Start all services
 
 ```bash
 docker-compose up --build
 ```
 
-Это запустит:
-- **PostgreSQL** (порт 5432) - общая БД для обоих приложений
-- **Quarkus App** (порт 8080) - Kotlin CRUD API
-- **Golang App** (порт 8081) - Go CRUD API
-- **Prometheus** (порт 9090) - сбор метрик
-- **Grafana** (порт 3000) - визуализация метрик
+This will start:
+- **PostgreSQL** (port 5432) - shared database for both applications
+- **Quarkus App** (port 8080) - Kotlin CRUD API
+- **Golang App** (port 8081) - Go CRUD API
+- **Prometheus** (port 9090) - metrics collection
+- **Grafana** (port 3000) - metrics visualization
 
-### 2. Доступ к сервисам
+### 2. Access to services
 
-| Сервис | URL | Credentials |
+| Service | URL | Credentials |
 |--------|-----|-------------|
 | Quarkus API | http://localhost:8080/api/products | - |
 | Golang API | http://localhost:8081/api/products | - |
@@ -45,7 +45,7 @@ docker-compose up --build
 | Quarkus Metrics | http://localhost:8080/q/metrics | - |
 | Golang Metrics | http://localhost:8081/metrics | - |
 
-### 3. Запуск бенчмарка
+### 3. Run benchmark
 
 ```bash
 ./benchmark.sh
@@ -53,53 +53,53 @@ docker-compose up --build
 
 ## API Endpoints
 
-Оба приложения предоставляют идентичный REST API:
+Both applications provide identical REST API:
 
-- `GET /api/products` - получить все продукты
-- `GET /api/products/:id` - получить продукт по ID
-- `POST /api/products` - создать новый продукт
-- `PUT /api/products/:id` - обновить продукт
-- `DELETE /api/products/:id` - удалить продукт
+- `GET /api/products` - get all products
+- `GET /api/products/:id` - get product by ID
+- `POST /api/products` - create new product
+- `PUT /api/products/:id` - update product
+- `DELETE /api/products/:id` - delete product
 
-### Примеры запросов
+### Request examples
 
 ```bash
-# Создать продукт в Quarkus
+# Create product in Quarkus
 curl -X POST http://localhost:8080/api/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Laptop","description":"Gaming laptop","price":1500.00,"quantity":10}'
 
-# Создать продукт в Golang
+# Create product in Golang
 curl -X POST http://localhost:8081/api/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Mouse","description":"Gaming mouse","price":50.00,"quantity":100}'
 
-# Получить все продукты
+# Get all products
 curl http://localhost:8080/api/products
 curl http://localhost:8081/api/products
 ```
 
-## Метрики в Grafana
+## Metrics in Grafana
 
-После запуска откройте Grafana по адресу http://localhost:3000 (admin/admin).
+After starting, open Grafana at http://localhost:3000 (admin/admin).
 
-Дашборд "Kotlin Quarkus vs Golang Gin Benchmark" содержит:
+Dashboard "Kotlin Quarkus vs Golang Gin Benchmark" contains:
 
-### Панели производительности
-- **Requests per Second** - количество запросов в секунду для каждого приложения
-- **Average Response Time** - среднее время отклика в миллисекундах
-- **HTTP Status Codes** - распределение HTTP кодов ответа
+### Performance panels
+- **Requests per Second** - number of requests per second for each application
+- **Average Response Time** - average response time in milliseconds
+- **HTTP Status Codes** - distribution of HTTP response codes
 
-### Панели использования ресурсов
-- **Memory Usage** - потребление памяти (Heap для JVM, Alloc для Go)
-- **Total Requests** - общее количество обработанных запросов
-- **Active Goroutines** - количество активных горутин (только для Go)
+### Resource usage panels
+- **Memory Usage** - memory consumption (Heap for JVM, Alloc for Go)
+- **Total Requests** - total number of processed requests
+- **Active Goroutines** - number of active goroutines (Go only)
 
-## Структура проекта
+## Project structure
 
 ```
 .
-├── kotlin-quarkus/              # Quarkus приложение
+├── kotlin-quarkus/              # Quarkus application
 │   ├── src/main/kotlin/
 │   │   └── dev/sourcecraft/dolgintsev/
 │   │       ├── entity/Product.kt
@@ -109,7 +109,7 @@ curl http://localhost:8081/api/products
 │   ├── build.gradle.kts
 │   └── Dockerfile
 │
-├── golang-gin/                  # Golang приложение
+├── golang-gin/                  # Golang application
 │   ├── cmd/server/main.go
 │   ├── internal/
 │   │   ├── models/product.go
@@ -119,19 +119,19 @@ curl http://localhost:8081/api/products
 │   ├── go.mod
 │   └── Dockerfile
 │
-├── grafana/                     # Конфигурация Grafana
+├── grafana/                     # Grafana configuration
 │   └── provisioning/
 │       ├── datasources/prometheus.yml
 │       └── dashboards/
 │           ├── dashboard.yml
 │           └── benchmark-dashboard.json
 │
-├── prometheus.yml               # Конфигурация Prometheus
-├── docker-compose.yml           # Docker compose для всех сервисов
-└── benchmark.sh                 # Скрипт для бенчмарка
+├── prometheus.yml               # Prometheus configuration
+├── docker-compose.yml           # Docker compose for all services
+└── benchmark.sh                 # Benchmark script
 ```
 
-## Технологии
+## Technologies
 
 ### Quarkus (Kotlin)
 - Quarkus 3.17.6
@@ -146,27 +146,27 @@ curl http://localhost:8081/api/products
 - Prometheus client
 - Custom metrics middleware
 
-## Остановка и очистка
+## Stop and cleanup
 
 ```bash
-# Остановить все сервисы
+# Stop all services
 docker-compose down
 
-# Остановить и удалить volumes (очистить данные БД)
+# Stop and remove volumes (clean database data)
 docker-compose down -v
 ```
 
 ## Benchmarking Tips
 
-1. **Прогрев**: Запустите несколько запросов перед началом бенчмарка для прогрева JVM
-2. **Нагрузка**: Варьируйте параметры `-n` (requests) и `-c` (concurrency) в benchmark.sh
-3. **Мониторинг**: Наблюдайте за метриками в Grafana в реальном времени во время бенчмарка
-4. **Ресурсы**: Убедитесь, что Docker выделено достаточно ресурсов (CPU, RAM)
+1. **Warmup**: Run several requests before starting benchmark to warm up JVM
+2. **Load**: Vary `-n` (requests) and `-c` (concurrency) parameters in benchmark.sh
+3. **Monitoring**: Watch metrics in Grafana in real-time during benchmark
+4. **Resources**: Make sure Docker has enough resources (CPU, RAM)
 
-## Результаты
+## Results
 
-После запуска бенчмарка сравните:
-- Throughput (запросов в секунду)
-- Latency (время отклика)
-- Использование памяти
-- Стабильность под нагрузкой
+After running benchmark, compare:
+- Throughput (requests per second)
+- Latency (response time)
+- Memory usage
+- Stability under load

@@ -76,7 +76,7 @@
       "id": 1,
       "type": "timeseries",
       "title": "GC Pause Time - Unified Comparison (ms)",
-      "description": "Сравнение времени пауз GC для всех приложений",
+      "description": "GC pause time comparison for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
       "fieldConfig": {
@@ -141,7 +141,7 @@
       "id": 2,
       "type": "timeseries",
       "title": "GC Frequency - Unified Comparison (collections/sec)",
-      "description": "Сравнение частоты вызовов GC для всех приложений",
+      "description": "GC invocation frequency comparison for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 10 },
       "fieldConfig": {
@@ -200,7 +200,7 @@
       "id": 3,
       "type": "timeseries",
       "title": "Heap Memory Usage - Unified Comparison (MB)",
-      "description": "Сравнение использования памяти в куче для всех приложений",
+      "description": "Heap memory usage comparison for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
       "fieldConfig": {
@@ -259,7 +259,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Threads / Goroutines - Unified Comparison",
-      "description": "Сравнение количества потоков и горутин для всех приложений",
+      "description": "Thread and goroutine count comparison for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
       "fieldConfig": {
@@ -324,7 +324,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "JVM Memory Allocation Rate (MB/s)",
-      "description": "Скорость выделения памяти для Quarkus JVM",
+      "description": "Memory allocation rate for Quarkus JVM",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
       "fieldConfig": {
@@ -358,7 +358,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Golang GC CPU Fraction (%)",
-      "description": "Процент CPU времени, затраченного на GC",
+      "description": "Percentage of CPU time spent on GC",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
       "fieldConfig": {
@@ -394,7 +394,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "JVM Heap Memory After GC (MB)",
-      "description": "Размер живых объектов в куче после GC",
+      "description": "Size of live objects in heap after GC",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
       "fieldConfig": {
@@ -434,7 +434,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "Golang Heap Allocations (MB)",
-      "description": "Объем выделенной и используемой памяти в куче Golang",
+      "description": "Allocated and in-use heap memory in Golang",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
       "fieldConfig": {
@@ -480,7 +480,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "JVM Memory Promotion Rate (MB/s)",
-      "description": "Скорость переноса объектов в старое поколение",
+      "description": "Object promotion rate to old generation",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 50 },
       "fieldConfig": {
@@ -514,7 +514,7 @@
       "id": 10,
       "type": "stat",
       "title": "Golang Last GC Time",
-      "description": "Время с последнего GC в секундах",
+      "description": "Time since last GC in seconds",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
       "fieldConfig": {
@@ -551,7 +551,7 @@
       "id": 11,
       "type": "timeseries",
       "title": "JVM GC Overhead (%)",
-      "description": "Процент CPU времени, затраченного на GC для JVM",
+      "description": "Percentage of CPU time spent on GC for JVM",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 58 },
       "fieldConfig": {
@@ -586,7 +586,7 @@
       "id": 12,
       "type": "timeseries",
       "title": "Threads / Goroutines Count",
-      "description": "Количество потоков (JVM) и горутин (Golang)",
+      "description": "Thread count (JVM) and goroutines (Golang)",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 58 },
       "fieldConfig": {
@@ -644,7 +644,7 @@
       "id": 13,
       "type": "timeseries",
       "title": "JVM Thread States",
-      "description": "Распределение потоков по состояниям",
+      "description": "Thread state distribution",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 66 },
       "fieldConfig": {
@@ -681,7 +681,7 @@
       "id": 14,
       "type": "timeseries",
       "title": "Golang Next GC Threshold (MB)",
-      "description": "Порог кучи, при котором произойдет следующая GC",
+      "description": "Heap threshold at which next GC will occur",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 66 },
       "fieldConfig": {
@@ -721,7 +721,7 @@
       "id": 15,
       "type": "timeseries",
       "title": "JVM Heap Usage After GC (%)",
-      "description": "Процент использования long-lived heap pool после GC",
+      "description": "Long-lived heap pool usage percentage after GC",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 74 },
       "fieldConfig": {
@@ -757,7 +757,7 @@
       "id": 16,
       "type": "timeseries",
       "title": "JVM Worker Pool (Vert.x)",
-      "description": "Состояние пулов потоков Vert.x: активные, простаивающие, очередь",
+      "description": "Vert.x thread pool status: active, idle, queue",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 74 },
       "fieldConfig": {

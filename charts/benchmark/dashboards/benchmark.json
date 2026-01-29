@@ -55,42 +55,6 @@
         "query": { "query": "label_values(up{namespace=\"$namespace\",service=~\".*golang.*\"}, service)", "refId": "gs" },
         "sort": 1,
         "refresh": 2
-      },
-      {
-        "type": "query",
-        "name": "quarkus_pod",
-        "label": "Quarkus JVM pod",
-        "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$quarkus_service\"}, pod)", "refId": "qpod" },
-        "multi": true,
-        "includeAll": true,
-        "allValue": ".*",
-        "refresh": 2,
-        "sort": 1
-      },
-      {
-        "type": "query",
-        "name": "quarkus_native_pod",
-        "label": "Quarkus GRAALVM pod",
-        "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$quarkus_native_service\"}, pod)", "refId": "qnpod" },
-        "multi": true,
-        "includeAll": true,
-        "allValue": ".*",
-        "refresh": 2,
-        "sort": 1
-      },
-      {
-        "type": "query",
-        "name": "golang_pod",
-        "label": "Golang pod",
-        "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "query": { "query": "label_values(up{namespace=\"$namespace\",service=\"$golang_service\"}, pod)", "refId": "gpod" },
-        "multi": true,
-        "includeAll": true,
-        "allValue": ".*",
-        "refresh": 2,
-        "sort": 1
       }
     ]
   },
@@ -190,19 +154,19 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "golang-gin"
         }
       ]
@@ -289,19 +253,19 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "quarkus"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "golang-gin"
         }
       ]
@@ -339,55 +303,55 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus usage"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "quarkus limit"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "quarkus request"
         },
         {
           "refId": "D",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus-graalvm usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "quarkus-graalvm limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "quarkus-graalvm request"
         },
         {
           "refId": "G",
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "golang-gin usage"
         },
         {
           "refId": "H",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "golang-gin limit"
         },
         {
           "refId": "I",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"cpu\",unit=\"core\"})",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",resource=\"cpu\",unit=\"core\"})",
           "legendFormat": "golang-gin request"
         }
       ]
@@ -425,55 +389,55 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "quarkus usage"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "quarkus limit"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "quarkus request"
         },
         {
           "refId": "D",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "quarkus-graalvm usage"
         },
         {
           "refId": "E",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "quarkus-graalvm limit"
         },
         {
           "refId": "F",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "quarkus-graalvm request"
         },
         {
           "refId": "G",
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}) / 1024 / 1024",
           "legendFormat": "golang-gin usage"
         },
         {
           "refId": "H",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "golang-gin limit"
         },
         {
           "refId": "I",
           "editorMode": "code",
-          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"$golang_pod\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
+          "expr": "sum(kube_pod_container_resource_requests{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",resource=\"memory\",unit=\"byte\"}) / 1024 / 1024",
           "legendFormat": "golang-gin request"
         }
       ]
@@ -511,19 +475,19 @@
         {
           "refId": "A",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-[0-9a-f].*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus"
         },
         {
           "refId": "B",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$quarkus_native_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"benchmark-quarkus-native-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "quarkus-graalvm"
         },
         {
           "refId": "C",
           "editorMode": "code",
-          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"$golang_pod\",container!=\"POD\",image!=\"\"}[1m]))",
+          "expr": "100 * sum(rate(container_cpu_cfs_throttled_periods_total{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}[1m])) / sum(rate(container_cpu_cfs_periods_total{namespace=\"$namespace\",pod=~\"benchmark-golang-.*\",container!=\"POD\",image!=\"\"}[1m]))",
           "legendFormat": "golang-gin"
         }
       ]

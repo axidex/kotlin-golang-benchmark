@@ -1,18 +1,18 @@
 # Deployment Guide
 
-## Быстрый старт для k3s
+## Quick start for k3s
 
-### 1. Установка chart
+### 1. Install chart
 
 ```bash
-# Установить приложение
+# Install application
 cd charts/benchmark
 helm install benchmark . -n benchmark --create-namespace
 ```
 
-### 2. Настройка доступа (NodePort для локального k3s)
+### 2. Setup access (NodePort for local k3s)
 
-Если у вас локальный k3s без внешнего домена, используйте NodePort:
+If you have local k3s without external domain, use NodePort:
 
 ```bash
 helm install benchmark . -n benchmark --create-namespace \
@@ -21,7 +21,7 @@ helm install benchmark . -n benchmark --create-namespace \
   --set golang.service.type=NodePort
 ```
 
-После установки узнайте порты:
+After installation, find out the ports:
 
 ```bash
 # Quarkus NodePort
@@ -31,146 +31,146 @@ kubectl get svc -n benchmark benchmark-quarkus -o jsonpath='{.spec.ports[0].node
 kubectl get svc -n benchmark benchmark-golang -o jsonpath='{.spec.ports[0].nodePort}'
 ```
 
-Доступ к приложениям:
+Access to applications:
 - Quarkus: `http://localhost:<QUARKUS_NODEPORT>/api/products`
 - Golang: `http://localhost:<GOLANG_NODEPORT>/api/products`
 
-### 3. Настройка доступа (с доменом)
+### 3. Setup access (with domain)
 
-Если у вас есть домен:
+If you have a domain:
 
 ```bash
 helm install benchmark . -n benchmark --create-namespace \
   --set ingress.hosts[0].host=quarkus.yourdomain.com \
   --set ingress.hosts[1].host=golang.yourdomain.com \
-  --set ingress.tls=null  # убрать TLS если нет cert-manager
+  --set ingress.tls=null  # remove TLS if no cert-manager
 ```
 
-### 4. Проверка работы
+### 4. Check operation
 
 ```bash
-# Проверить статус подов
+# Check pod status
 kubectl get pods -n benchmark
 
-# Проверить логи
+# Check logs
 kubectl logs -n benchmark -l app=quarkus -f
 kubectl logs -n benchmark -l app=golang -f
 
-# Проверить сервисы
+# Check services
 kubectl get svc -n benchmark
 
-# Port-forward для локального доступа
+# Port-forward for local access
 kubectl port-forward -n benchmark svc/benchmark-quarkus 8080:8080
 kubectl port-forward -n benchmark svc/benchmark-golang 8081:8080
 ```
 
-### 5. Тестирование API
+### 5. API testing
 
 ```bash
-# Создать продукт (Quarkus)
+# Create product (Quarkus)
 curl -X POST http://localhost:8080/api/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Test Product","description":"Test","price":100.0,"quantity":10}'
 
-# Получить все продукты
+# Get all products
 curl http://localhost:8080/api/products
 
-# Создать продукт (Golang)
+# Create product (Golang)
 curl -X POST http://localhost:8081/api/products \
   -H "Content-Type: application/json" \
   -d '{"name":"Test Product","description":"Test","price":100.0,"quantity":10}'
 
-# Получить все продукты
+# Get all products
 curl http://localhost:8081/api/products
 ```
 
-### 6. Удаление
+### 6. Removal
 
 ```bash
 helm uninstall benchmark -n benchmark
 kubectl delete namespace benchmark
 ```
 
-## Кастомизация values.yaml
+## Customizing values.yaml
 
-Основные параметры для изменения:
+Main parameters to change:
 
 ```yaml
-# Изменить образы
+# Change images
 quarkus:
   image:
     repository: axidex/benchmark-kotlin-quarkus
-    tag: v1.0.0  # вместо latest
+    tag: v1.0.0  # instead of latest
 
 golang:
   image:
     repository: axidex/benchmark-golang-gin
-    tag: v1.0.0  # вместо latest
+    tag: v1.0.0  # instead of latest
 
-# Изменить ресурсы
+# Change resources
 quarkus:
   resources:
     limits:
       cpu: 2000m
       memory: 1Gi
 
-# Изменить пароль БД
+# Change DB password
 postgresql:
   auth:
     password: "your-secure-password"
 ```
 
-## Мониторинг и метрики
+## Monitoring and metrics
 
-Приложения экспортируют метрики для Prometheus:
+Applications export metrics for Prometheus:
 - Quarkus: `http://localhost:30080/q/metrics`
 - Golang: `http://localhost:30081/metrics`
 
-### Интеграция с kube-prometheus-stack
+### Integration with kube-prometheus-stack
 
-Если у вас установлен kube-prometheus-stack в namespace monitoring:
+If you have kube-prometheus-stack installed in monitoring namespace:
 
 ```bash
-# Установка kube-prometheus-stack (если еще не установлен)
+# Install kube-prometheus-stack (if not already installed)
 helm install mon prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
 ```
 
-1. **ServiceMonitor'ы** автоматически создадутся при установке chart и настроят scraping метрик
+1. **ServiceMonitors** will be created automatically during chart installation and configure metrics scraping
 
-2. **Проверка что метрики собираются**:
+2. **Check that metrics are being collected**:
 ```bash
-# Проверить ServiceMonitors
+# Check ServiceMonitors
 kubectl get servicemonitor -n benchmark
 
-# Port-forward к Prometheus и проверить targets
+# Port-forward to Prometheus and check targets
 kubectl port-forward -n monitoring svc/mon-kube-prometheus-stack-prometheus 9090:9090
-# Открыть http://localhost:9090/targets - должны быть benchmark-quarkus и benchmark-golang
+# Open http://localhost:9090/targets - should see benchmark-quarkus and benchmark-golang
 ```
 
-3. **Доступ к Grafana**:
+3. **Access Grafana**:
 ```bash
-# Port-forward к Grafana
+# Port-forward to Grafana
 export POD_NAME=$(kubectl --namespace monitoring get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=mon" -oname)
 kubectl --namespace monitoring port-forward $POD_NAME 3000
 ```
 
 4. **Dashboard**:
-   - Dashboard автоматически доступен если Grafana настроена на автоимпорт (sidecar)
-   - Или импортировать вручную из `grafana/provisioning/dashboards/benchmark-dashboard.json`
+   - Dashboard automatically available if Grafana configured for auto-import (sidecar)
+   - Or import manually from `grafana/provisioning/dashboards/benchmark-dashboard.json`
 
-### Если ServiceMonitor не подхватывается
+### If ServiceMonitor is not picked up
 
-Проверьте что Prometheus мониторит namespace benchmark:
+Check that Prometheus monitors benchmark namespace:
 
 ```bash
-# Добавить label к namespace
+# Add label to namespace
 kubectl label namespace benchmark monitoring=enabled
 
-# Проверить конфигурацию Prometheus Operator
+# Check Prometheus Operator configuration
 kubectl get prometheus -n monitoring -o yaml | grep -A 5 serviceMonitorNamespaceSelector
 ```
 
-Если нужно, обновите kube-prometheus-stack чтобы мониторить все namespaces:
+If needed, update kube-prometheus-stack to monitor all namespaces:
 ```bash
 helm upgrade mon prometheus-community/kube-prometheus-stack -n monitoring \
   --set prometheus.prometheusSpec.serviceMonitorNamespaceSelector={} \
@@ -179,42 +179,42 @@ helm upgrade mon prometheus-community/kube-prometheus-stack -n monitoring \
 
 ## Troubleshooting
 
-### Приложение не стартует
+### Application won't start
 
 ```bash
-# Проверить логи
+# Check logs
 kubectl logs -n benchmark deployment/benchmark-quarkus
 kubectl logs -n benchmark deployment/benchmark-golang
 
-# Проверить события
+# Check events
 kubectl get events -n benchmark --sort-by='.lastTimestamp'
 
-# Проверить описание пода
+# Check pod description
 kubectl describe pod -n benchmark -l app=quarkus
 ```
 
-### PostgreSQL не доступен
+### PostgreSQL not available
 
 ```bash
-# Проверить PostgreSQL
+# Check PostgreSQL
 kubectl logs -n benchmark -l app.kubernetes.io/name=postgresql
 
-# Проверить service
+# Check service
 kubectl get svc -n benchmark benchmark-postgresql
 
-# Проверить credentials
+# Check credentials
 kubectl get secret -n benchmark benchmark-postgresql -o yaml
 ```
 
-### Ingress не работает
+### Ingress not working
 
 ```bash
-# Проверить Traefik (встроенный в k3s)
+# Check Traefik (built-in to k3s)
 kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik
 
-# Проверить ingress
+# Check ingress
 kubectl describe ingress -n benchmark
 
-# Проверить logs Traefik
+# Check Traefik logs
 kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```

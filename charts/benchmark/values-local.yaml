@@ -1,18 +1,18 @@
 # values-local.yaml
-# Для локального k3s без внешнего домена
+# For local k3s without external domain
 
 quarkus:
   enabled: true
   service:
-    type: NodePort  # Используем NodePort для локального доступа
+    type: NodePort  # Use NodePort for local access
 
 golang:
   enabled: true
   service:
-    type: NodePort  # Используем NodePort для локального доступа
+    type: NodePort  # Use NodePort for local access
 
 ingress:
-  enabled: false  # Отключаем Ingress для локального тестирования
+  enabled: false  # Disable Ingress for local testing
 
 postgresql:
   enabled: true

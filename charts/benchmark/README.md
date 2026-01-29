@@ -1,55 +1,55 @@
 # Benchmark Helm Chart
 
-Helm chart для развертывания Kotlin Quarkus и Golang Gin приложений в Kubernetes (k3s).
+Helm chart for deploying Kotlin Quarkus and Golang Gin applications in Kubernetes (k3s).
 
-## Установка
+## Installation
 
-### 1. Установить chart
+### 1. Install chart
 
 ```bash
-# Базовая установка
+# Basic installation
 helm install benchmark . -n benchmark --create-namespace
 
-# С кастомными значениями
+# With custom values
 helm install benchmark . -n benchmark --create-namespace \
   --set ingress.hosts[0].host=quarkus.yourdomain.com \
   --set ingress.hosts[1].host=golang.yourdomain.com
 ```
 
-### 4. Обновить существующий релиз
+### 4. Update existing release
 
 ```bash
 helm upgrade benchmark . -n benchmark
 ```
 
-### 5. Удалить релиз
+### 5. Remove release
 
 ```bash
 helm uninstall benchmark -n benchmark
 ```
 
-## Конфигурация
+## Configuration
 
-### Основные параметры
+### Main parameters
 
-| Параметр | Описание | Значение по умолчанию |
+| Parameter | Description | Default value |
 |----------|----------|----------------------|
-| `quarkus.enabled` | Включить Quarkus приложение | `true` |
-| `quarkus.image.repository` | Docker образ Quarkus | `axidex/benchmark-kotlin-quarkus` |
-| `quarkus.image.tag` | Тег образа | `latest` |
-| `golang.enabled` | Включить Golang приложение | `true` |
-| `golang.image.repository` | Docker образ Golang | `axidex/benchmark-golang-gin` |
-| `golang.image.tag` | Тег образа | `latest` |
-| `postgresql.enabled` | Включить PostgreSQL | `true` |
-| `postgresql.auth.database` | Имя БД | `benchmark` |
-| `postgresql.auth.username` | Пользователь БД | `postgres` |
-| `postgresql.auth.password` | Пароль БД | `postgres` |
+| `quarkus.enabled` | Enable Quarkus application | `true` |
+| `quarkus.image.repository` | Quarkus Docker image | `axidex/benchmark-kotlin-quarkus` |
+| `quarkus.image.tag` | Image tag | `latest` |
+| `golang.enabled` | Enable Golang application | `true` |
+| `golang.image.repository` | Golang Docker image | `axidex/benchmark-golang-gin` |
+| `golang.image.tag` | Image tag | `latest` |
+| `postgresql.enabled` | Enable PostgreSQL | `true` |
+| `postgresql.auth.database` | Database name | `benchmark` |
+| `postgresql.auth.username` | Database user | `postgres` |
+| `postgresql.auth.password` | Database password | `postgres` |
 
 ### Ingress
 
-По умолчанию используется Traefik (встроенный в k3s).
+By default, Traefik (built into k3s) is used.
 
-Измените хосты в `values.yaml`:
+Change hosts in `values.yaml`:
 
 ```yaml
 ingress:
@@ -66,16 +66,16 @@ ingress:
           backend: golang
 ```
 
-## Примеры использования
+## Usage examples
 
-### Установка без TLS
+### Installation without TLS
 
 ```bash
 helm install benchmark . -n benchmark --create-namespace \
   --set ingress.tls=null
 ```
 
-### Использование LoadBalancer вместо Ingress
+### Using LoadBalancer instead of Ingress
 
 ```bash
 helm install benchmark . -n benchmark --create-namespace \
@@ -84,7 +84,7 @@ helm install benchmark . -n benchmark --create-namespace \
   --set golang.service.type=LoadBalancer
 ```
 
-### Увеличение ресурсов
+### Increasing resources
 
 ```bash
 helm install benchmark . -n benchmark --create-namespace \
@@ -92,28 +92,28 @@ helm install benchmark . -n benchmark --create-namespace \
   --set quarkus.resources.limits.cpu=2000m
 ```
 
-## Проверка статуса
+## Status check
 
 ```bash
-# Проверить поды
+# Check pods
 kubectl get pods -n benchmark
 
-# Проверить сервисы
+# Check services
 kubectl get svc -n benchmark
 
-# Проверить ingress
+# Check ingress
 kubectl get ingress -n benchmark
 
-# Логи Quarkus
+# Quarkus logs
 kubectl logs -n benchmark -l app=quarkus -f
 
-# Логи Golang
+# Golang logs
 kubectl logs -n benchmark -l app=golang -f
 ```
 
 ## Endpoints
 
-После установки приложения будут доступны по следующим адресам:
+After installation, applications will be available at:
 
 - Quarkus: `http://quarkus.example.com/api/products`
 - Golang: `http://golang.example.com/api/products`
@@ -124,20 +124,20 @@ kubectl logs -n benchmark -l app=golang -f
 
 ## Troubleshooting
 
-### Проверить подключение к БД
+### Check database connection
 
 ```bash
 kubectl exec -it -n benchmark deployment/benchmark-quarkus -- env | grep DATABASE
 kubectl exec -it -n benchmark deployment/benchmark-golang -- env | grep DATABASE
 ```
 
-### Проверить логи PostgreSQL
+### Check PostgreSQL logs
 
 ```bash
 kubectl logs -n benchmark -l app.kubernetes.io/name=postgresql -f
 ```
 
-### Port-forward для локального доступа
+### Port-forward for local access
 
 ```bash
 # Quarkus

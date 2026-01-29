@@ -76,7 +76,7 @@
       "id": 1,
       "type": "timeseries",
       "title": "Request Rate - Unified Comparison (req/s)",
-      "description": "Количество HTTP запросов в секунду для всех приложений",
+      "description": "HTTP requests per second for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
       "fieldConfig": {
@@ -135,7 +135,7 @@
       "id": 2,
       "type": "timeseries",
       "title": "Request Latency - Unified Comparison (ms)",
-      "description": "Среднее время обработки HTTP запросов",
+      "description": "Average HTTP request processing time",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
       "fieldConfig": {
@@ -206,7 +206,7 @@
       "id": 3,
       "type": "timeseries",
       "title": "Active Requests - Unified Comparison",
-      "description": "Количество активных HTTP запросов в данный момент",
+      "description": "Number of active HTTP requests at the moment",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
       "fieldConfig": {
@@ -265,7 +265,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Network Throughput - Unified Comparison (KB/s)",
-      "description": "Объем отправленных данных по сети",
+      "description": "Volume of data sent over the network",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
       "fieldConfig": {
@@ -314,7 +314,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "Request Rate by Status Code (req/s)",
-      "description": "Количество запросов по статус-кодам для всех приложений",
+      "description": "Number of requests by status code for all applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
       "fieldConfig": {
@@ -409,7 +409,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Error Rate (%)",
-      "description": "Процент ошибок (4xx + 5xx) от общего количества запросов",
+      "description": "Error rate (4xx + 5xx) as percentage of total requests",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
       "fieldConfig": {
@@ -470,7 +470,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "Quarkus JVM - Latency by Endpoint (ms)",
-      "description": "Среднее время обработки по эндпоинтам",
+      "description": "Average processing time by endpoint",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
       "fieldConfig": {
@@ -504,7 +504,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "Quarkus Native - Latency by Endpoint (ms)",
-      "description": "Среднее время обработки по эндпоинтам",
+      "description": "Average processing time by endpoint",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
       "fieldConfig": {
@@ -538,7 +538,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "Connection Duration (seconds)",
-      "description": "Длительность HTTP соединений для Quarkus приложений",
+      "description": "HTTP connection duration for Quarkus applications",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
       "fieldConfig": {
@@ -590,7 +590,7 @@
       "id": 10,
       "type": "timeseries",
       "title": "Response Size Distribution (bytes)",
-      "description": "Средний размер ответа от сервера",
+      "description": "Average response size from server",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
       "fieldConfig": {
@@ -651,7 +651,7 @@
       "id": 11,
       "type": "stat",
       "title": "Total Requests",
-      "description": "Общее количество обработанных запросов",
+      "description": "Total number of processed requests",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 6, "w": 8, "x": 0, "y": 60 },
       "fieldConfig": {
@@ -700,7 +700,7 @@
       "id": 12,
       "type": "stat",
       "title": "Current Request Rate",
-      "description": "Текущая частота запросов",
+      "description": "Current request rate",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 6, "w": 8, "x": 8, "y": 60 },
       "fieldConfig": {
@@ -749,7 +749,7 @@
       "id": 13,
       "type": "stat",
       "title": "Average Latency",
-      "description": "Средняя задержка обработки запросов",
+      "description": "Average request processing latency",
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 6, "w": 8, "x": 16, "y": 60 },
       "fieldConfig": {
