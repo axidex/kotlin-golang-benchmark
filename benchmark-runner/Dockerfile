@@ -10,7 +10,7 @@ COPY go.mod ./
 RUN go mod download
 
 # Copy source code
-COPY main.go ./
+COPY *.go ./
 
 # Build binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o benchmark-runner .
