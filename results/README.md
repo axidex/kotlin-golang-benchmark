@@ -91,3 +91,7 @@ The benchmark tool generates cycles at a constant rate using 500 concurrent work
 ![metrics server side](crud_basic_benchmark_images/golang_gin_second_run_crud_server.png)
 
 ![metrics client side](crud_basic_benchmark_images/golang_gin_second_run_crud_client.png)
+
+## 6 hours after benchmarks
+
+![after becnhmark](images/after_benchmark.png)
