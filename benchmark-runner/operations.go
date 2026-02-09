@@ -23,17 +23,23 @@ func executeRequest(ctx *RequestContext, task RequestTask) (time.Duration, error
 	var statusCode int
 	var responseBody string
 
+	// Use ProductID from context, fallback to FixedProductID if not set
+	productID := int(ctx.ProductID)
+	if productID == 0 {
+		productID = FixedProductID
+	}
+
 	switch task.Type {
 	case GetProducts:
 		statusCode, responseBody, err = getProducts(ctx)
 	case CreateProduct:
 		statusCode, responseBody, err = createProduct(ctx)
 	case GetProductByID:
-		statusCode, responseBody, err = getProductByID(ctx, FixedProductID)
+		statusCode, responseBody, err = getProductByID(ctx, productID)
 	case UpdateProduct:
-		statusCode, responseBody, err = updateProduct(ctx, FixedProductID)
+		statusCode, responseBody, err = updateProduct(ctx, productID)
 	case DeleteProduct:
-		statusCode, responseBody, err = deleteProduct(ctx, FixedProductID)
+		statusCode, responseBody, err = deleteProduct(ctx, productID)
 	default:
 		err = fmt.Errorf("unknown benchmark type: %s", task.Type)
 		statusCode = 0
@@ -44,7 +50,7 @@ func executeRequest(ctx *RequestContext, task RequestTask) (time.Duration, error
 
 	// Record error if any
 	if err != nil {
-		operation := fmt.Sprintf("%s %s", getHTTPMethod(task.Type), getEndpoint(task.Type))
+		operation := fmt.Sprintf("%s %s", getHTTPMethod(task.Type), getEndpoint(task.Type, productID))
 		ctx.ErrorStats.RecordError(operation, "request_error", err.Error(), statusCode, responseBody)
 	}
 
@@ -71,6 +77,33 @@ func createProduct(ctx *RequestContext) (int, string, error) {
 		return 0, "", err
 	}
 	return doRequest(ctx.Client, "POST", url, body)
+}
+
+// createProductAndGetID performs POST /api/products and extracts the ID from response
+func createProductAndGetID(ctx *RequestContext) (int64, error) {
+	url := ctx.Config.URL + "/api/products"
+	product := Product{
+		Name:        "Benchmark Product",
+		Description: "Created by benchmark tool",
+		Price:       99.99,
+		Quantity:    100,
+	}
+	body, err := json.Marshal(product)
+	if err != nil {
+		return 0, err
+	}
+
+	statusCode, responseBody, err := doRequest(ctx.Client, "POST", url, body)
+	if err != nil || statusCode != 201 {
+		return 0, fmt.Errorf("failed to create product: status=%d, error=%v", statusCode, err)
+	}
+
+	var createdProduct Product
+	if err := json.Unmarshal([]byte(responseBody), &createdProduct); err != nil {
+		return 0, fmt.Errorf("failed to parse created product: %v", err)
+	}
+
+	return createdProduct.ID, nil
 }
 
 // getProductByID performs GET /api/products/{id}
@@ -155,18 +188,18 @@ func getHTTPMethod(benchType BenchmarkType) string {
 }
 
 // getEndpoint returns endpoint for benchmark type
-func getEndpoint(benchType BenchmarkType) string {
+func getEndpoint(benchType BenchmarkType, productID int) string {
 	switch benchType {
 	case GetProducts:
 		return "/api/products"
 	case CreateProduct:
 		return "/api/products"
 	case GetProductByID:
-		return fmt.Sprintf("/api/products/%d", FixedProductID)
+		return fmt.Sprintf("/api/products/%d", productID)
 	case UpdateProduct:
-		return fmt.Sprintf("/api/products/%d", FixedProductID)
+		return fmt.Sprintf("/api/products/%d", productID)
 	case DeleteProduct:
-		return fmt.Sprintf("/api/products/%d", FixedProductID)
+		return fmt.Sprintf("/api/products/%d", productID)
 	default:
 		return "/unknown"
 	}

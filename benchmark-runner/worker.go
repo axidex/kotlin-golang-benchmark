@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"math/rand"
 	"net/http"
 	"sort"
 	"sync"
@@ -42,18 +41,24 @@ func runBenchmark(config Config) *Result {
 		go func() {
 			defer wg.Done()
 			for task := range requestQueue {
-				atomic.AddInt64(&totalRequests, 1)
-
-				latency, err := executeRequest(ctx, task)
-
-				latenciesMutex.Lock()
-				latencies = append(latencies, latency)
-				latenciesMutex.Unlock()
-
-				if err != nil {
-					atomic.AddInt64(&failedRequests, 1)
+				// For mixed operations, execute full CRUD cycle
+				if task.Type == MixedOperations {
+					executeCRUDCycle(ctx, &totalRequests, &successRequests, &failedRequests, &latencies, &latenciesMutex)
 				} else {
-					atomic.AddInt64(&successRequests, 1)
+					// Single operation mode
+					atomic.AddInt64(&totalRequests, 1)
+
+					latency, err := executeRequest(ctx, task)
+
+					latenciesMutex.Lock()
+					latencies = append(latencies, latency)
+					latenciesMutex.Unlock()
+
+					if err != nil {
+						atomic.AddInt64(&failedRequests, 1)
+					} else {
+						atomic.AddInt64(&successRequests, 1)
+					}
 				}
 			}
 		}()
@@ -61,35 +66,34 @@ func runBenchmark(config Config) *Result {
 
 	// Start request generator
 	startTime := time.Now()
-	ticker := time.NewTicker(time.Second / time.Duration(config.RPS))
+
+	// For mixed operations, each cycle contains 4 HTTP requests
+	// So we need to divide RPS by 4 to get the correct number of cycles
+	rps := config.RPS
+	if config.BenchmarkType == MixedOperations {
+		rps = config.RPS / 4
+		if rps == 0 {
+			rps = 1 // Minimum 1 cycle per second
+		}
+	}
+
+	ticker := time.NewTicker(time.Second / time.Duration(rps))
 	defer ticker.Stop()
 
 	benchmarkCtx, cancel := context.WithTimeout(context.Background(), config.Duration)
 	defer cancel()
 
-	// All available operations for mixed mode (excluding GetProducts)
-	allOperations := []BenchmarkType{
-		CreateProduct,
-		GetProductByID,
-		UpdateProduct,
-		DeleteProduct,
-	}
-
 	// Generate requests at specified RPS
 	go func() {
 		defer close(requestQueue)
-		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for {
 			select {
 			case <-benchmarkCtx.Done():
 				return
 			case <-ticker.C:
-				taskType := config.BenchmarkType
-				// If mixed operations, randomly select operation type
-				if config.BenchmarkType == MixedOperations {
-					taskType = allOperations[rng.Intn(len(allOperations))]
-				}
-				requestQueue <- RequestTask{Type: taskType}
+				// For mixed operations, pass MixedOperations type
+				// The worker will execute full CRUD cycle
+				requestQueue <- RequestTask{Type: config.BenchmarkType}
 			}
 		}
 	}()
@@ -110,6 +114,7 @@ func runBenchmark(config Config) *Result {
 		TotalDuration:   duration,
 		Latencies:       latencies,
 		Errors:          errorStats,
+		BenchmarkType:   config.BenchmarkType,
 	}
 
 	calculateLatencyStats(result)
@@ -154,4 +159,55 @@ func percentile(sortedLatencies []time.Duration, p float64) time.Duration {
 		index = len(sortedLatencies) - 1
 	}
 	return sortedLatencies[index]
+}
+
+// executeCRUDCycle executes full CRUD cycle: CREATE -> GET -> UPDATE -> DELETE
+// This counts as ONE request iteration
+func executeCRUDCycle(ctx *RequestContext, totalRequests, successRequests, failedRequests *int64, latencies *[]time.Duration, mutex *sync.Mutex) {
+	atomic.AddInt64(totalRequests, 1)
+
+	start := time.Now()
+	var cycleSuccess = true
+
+	// Step 1: CREATE product and get ID
+	productID, err := createProductAndGetID(ctx)
+	if err != nil {
+		atomic.AddInt64(failedRequests, 1)
+		cycleSuccess = false
+		// Record latency even for failed cycle
+		mutex.Lock()
+		*latencies = append(*latencies, time.Since(start))
+		mutex.Unlock()
+		return
+	}
+
+	// Step 2: GET product by ID
+	_, _, err = getProductByID(ctx, int(productID))
+	if err != nil {
+		cycleSuccess = false
+	}
+
+	// Step 3: UPDATE product
+	_, _, err = updateProduct(ctx, int(productID))
+	if err != nil {
+		cycleSuccess = false
+	}
+
+	// Step 4: DELETE product
+	_, _, err = deleteProduct(ctx, int(productID))
+	if err != nil {
+		cycleSuccess = false
+	}
+
+	latency := time.Since(start)
+
+	mutex.Lock()
+	*latencies = append(*latencies, latency)
+	mutex.Unlock()
+
+	if cycleSuccess {
+		atomic.AddInt64(successRequests, 1)
+	} else {
+		atomic.AddInt64(failedRequests, 1)
+	}
 }

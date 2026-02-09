@@ -8,17 +8,45 @@ import (
 
 // printResults prints the benchmark results in a formatted table and JSON
 func printResults(r *Result, verbose bool) {
+	// For mixed operations, calculate total HTTP requests
+	// Success cycles = 4 HTTP requests each
+	// Failed cycles counted as cycles (partial completion)
+	totalHTTPRequests := r.TotalRequests
+	actualRPS := float64(r.TotalRequests) / r.TotalDuration.Seconds()
+
+	if r.BenchmarkType == MixedOperations {
+		// Successful cycles: 4 HTTP requests each
+		// Failed cycles: counted as partial, not multiplied
+		totalHTTPRequests = r.SuccessRequests*4 + r.FailedRequests
+		actualRPS = float64(totalHTTPRequests) / r.TotalDuration.Seconds()
+	}
+
 	fmt.Println("")
 	fmt.Println("════════════════════════════════════════════════════════════════")
 	fmt.Println("                      BENCHMARK RESULTS")
 	fmt.Println("════════════════════════════════════════════════════════════════")
-	fmt.Printf("Total Requests:   %d\n", r.TotalRequests)
-	fmt.Printf("Success:          %d (%.2f%%)\n", r.SuccessRequests, float64(r.SuccessRequests)/float64(r.TotalRequests)*100)
-	fmt.Printf("Failed:           %d (%.2f%%)\n", r.FailedRequests, float64(r.FailedRequests)/float64(r.TotalRequests)*100)
-	fmt.Printf("Duration:         %s\n", r.TotalDuration)
-	fmt.Printf("Actual RPS:       %.2f req/s\n", float64(r.TotalRequests)/r.TotalDuration.Seconds())
+
+	if r.BenchmarkType == MixedOperations {
+		fmt.Printf("CRUD Cycles:      %d\n", r.TotalRequests)
+		fmt.Printf("  Success:        %d cycles (%.2f%%)\n", r.SuccessRequests, float64(r.SuccessRequests)/float64(r.TotalRequests)*100)
+		fmt.Printf("  Failed:         %d cycles (%.2f%%)\n", r.FailedRequests, float64(r.FailedRequests)/float64(r.TotalRequests)*100)
+		fmt.Printf("Total HTTP Reqs:  ~%d\n", totalHTTPRequests)
+		fmt.Printf("Duration:         %s\n", r.TotalDuration)
+		fmt.Printf("Actual RPS:       %.2f req/s\n", actualRPS)
+		fmt.Printf("Cycles/sec:       %.2f cycles/s\n", float64(r.TotalRequests)/r.TotalDuration.Seconds())
+	} else {
+		fmt.Printf("Total Requests:   %d\n", r.TotalRequests)
+		fmt.Printf("Success:          %d (%.2f%%)\n", r.SuccessRequests, float64(r.SuccessRequests)/float64(r.TotalRequests)*100)
+		fmt.Printf("Failed:           %d (%.2f%%)\n", r.FailedRequests, float64(r.FailedRequests)/float64(r.TotalRequests)*100)
+		fmt.Printf("Duration:         %s\n", r.TotalDuration)
+		fmt.Printf("Actual RPS:       %.2f req/s\n", actualRPS)
+	}
+
 	fmt.Println("")
 	fmt.Println("Latency:")
+	if r.BenchmarkType == MixedOperations {
+		fmt.Println("  (Full CRUD cycle: CREATE->GET->UPDATE->DELETE)")
+	}
 	fmt.Printf("  Min:            %s\n", r.MinLatency)
 	fmt.Printf("  Avg:            %s\n", r.AvgLatency)
 	fmt.Printf("  Max:            %s\n", r.MaxLatency)
@@ -95,12 +123,8 @@ func printResults(r *Result, verbose bool) {
 		}
 	}
 
-	jsonResult, _ := json.MarshalIndent(map[string]interface{}{
-		"total_requests":   r.TotalRequests,
-		"success_requests": r.SuccessRequests,
-		"failed_requests":  r.FailedRequests,
+	jsonData := map[string]interface{}{
 		"duration_seconds": r.TotalDuration.Seconds(),
-		"rps":              float64(r.TotalRequests) / r.TotalDuration.Seconds(),
 		"latency": map[string]string{
 			"min": r.MinLatency.String(),
 			"avg": r.AvgLatency.String(),
@@ -114,7 +138,23 @@ func printResults(r *Result, verbose bool) {
 			"unique": r.Errors.GetUniqueCount(),
 			"list":   errorList,
 		},
-	}, "", "  ")
+	}
+
+	if r.BenchmarkType == MixedOperations {
+		jsonData["crud_cycles"] = r.TotalRequests
+		jsonData["success_cycles"] = r.SuccessRequests
+		jsonData["failed_cycles"] = r.FailedRequests
+		jsonData["total_http_requests"] = totalHTTPRequests
+		jsonData["rps"] = actualRPS
+		jsonData["cycles_per_second"] = float64(r.TotalRequests) / r.TotalDuration.Seconds()
+	} else {
+		jsonData["total_requests"] = r.TotalRequests
+		jsonData["success_requests"] = r.SuccessRequests
+		jsonData["failed_requests"] = r.FailedRequests
+		jsonData["rps"] = actualRPS
+	}
+
+	jsonResult, _ := json.MarshalIndent(jsonData, "", "  ")
 	fmt.Println("")
 	fmt.Println("JSON Results:")
 	fmt.Println(string(jsonResult))

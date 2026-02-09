@@ -38,6 +38,7 @@ type Result struct {
 	P99Latency      time.Duration
 	Latencies       []time.Duration
 	Errors          *ErrorStats
+	BenchmarkType   BenchmarkType // To know if it was mixed-operations
 }
 
 type Product struct {
@@ -52,6 +53,7 @@ type RequestContext struct {
 	Client     *http.Client
 	Config     Config
 	ErrorStats *ErrorStats
+	ProductID  int64 // ID of the created product to use in operations
 }
 
 type RequestTask struct {
